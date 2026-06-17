@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>M17LIV3 - Cartelera</title>
 <style>
-  * { box-sizing:border-box; margin:0; padding:0; }
+  * { box-sizing:border-box; margin:0; padding:0; user-select:none; -webkit-user-select:none; -moz-user-select:none; }
   body {
     background: #0d0d14;
     color: #eeeef5;
@@ -94,6 +94,15 @@
     color: rgba(238,238,245,0.2);
     letter-spacing: 1px;
   }
+  .fecha {
+    text-align: center;
+    font-size: 13px;
+    color: rgba(0,229,255,0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
   .refresh-btn {
     display: block;
     margin: 0 auto 20px;
@@ -115,6 +124,7 @@
 </div>
 
 <div class="container">
+  <div class="fecha" id="fechaHoy"></div>
   <div id="content"><div class="loading">⏳ Cargando...</div></div>
   <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
 </div>
@@ -172,6 +182,15 @@ async function loadData() {
     el.innerHTML = '<div class="empty"><span>⚠️</span>No se pudo cargar el contenido.<br>Comprueba tu conexión.</div>';
   }
 }
+
+// Mostrar fecha actual
+(function() {
+  var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var now = new Date();
+  var str = dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' ' + now.getFullYear();
+  document.getElementById('fechaHoy').textContent = str;
+})();
 
 loadData();
 </script>
