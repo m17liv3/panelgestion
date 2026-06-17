@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M17LIV3 - Gestión IPTV</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --cyan: #00e5ff;
+    --green: #76ff03;
+    --dark: #0a0a0f;
+    --card: #111118;
+    --card2: #1a1a24;
+    --border: #2a2a3a;
+    --text: #e0e0f0;
+    --muted: #888;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--dark); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  #loginPage {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; background: radial-gradient(ellipse at center, #0d1a2e 0%, var(--dark) 70%);
+  }
+  #loginBox {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px 36px; width: 340px; text-align: center;
+    box-shadow: 0 0 40px rgba(0,229,255,0.1);
+  }
+  #loginBox img { width: 110px; margin-bottom: 20px; }
+  #loginBox h2 { color: var(--cyan); margin-bottom: 6px; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
+  #loginBox p { color: var(--muted); font-size: 0.8rem; margin-bottom: 24px; }
+  .inp { width: 100%; padding: 11px 14px; background: var(--dark); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 0.95rem; margin-bottom: 14px; outline: none; }
+  .inp:focus { border-color: var(--cyan); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
+  #loginErr { color: #ff5252; font-size: 0.82rem; margin-bottom: 10px; display: none; }
+  .btnPrimary { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--cyan), var(--green));
+    border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; color: #0a0a0f;
+    transition: opacity .2s; }
+  .btnPrimary:hover { opacity: .85; }
+
+  #appPage { display: none; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: var(--card); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  header img { height: 48px; }
+  header h1 { font-size: 1rem; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; }
+  .headerRight { display: flex; gap: 10px; align-items: center; }
+  .btnSm { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: opacity .2s; }
+  .btnSm:hover { opacity: .8; }
+  .btnCyan { background: var(--cyan); color: #0a0a0f; }
+  .btnGreen { background: var(--green); color: #0a0a0f; }
+  .btnRed { background: #ff5252; color: #fff; }
+  .btnGray { background: var(--border); color: var(--text); }
+
+  main { padding: 24px 28px; }
+
+  .stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .statCard { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 24px; flex: 1; min-width: 140px; }
+  .statCard .val { font-size: 2rem; font-weight: 700; }
+  .statCard .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .cyan { color: var(--cyan); }
+  .green { color: var(--green); }
+  .orange { color: #ff9800; }
+  .red { color: #ff5252; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .toolbar input, .toolbar select {
+    padding: 9px 14px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 0.88rem; outline: none;
+  }
+  .toolbar input:focus, .toolbar select:focus { border-color: var(--cyan); }
+  .toolbar input { flex: 1; min-width: 200px; }
+
+  .tableWrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { background: var(--card2); color: var(--muted); text-transform: uppercase; font-size: 0.72rem;
+    letter-spacing: 1px; padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: rgba(0,229,255,0.03); }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+  .badgeTodo { background: rgba(0,229,255,0.15); color: var(--cyan); }
+  .badgeEs { background: rgba(118,255,3,0.15); color: var(--green); }
+  .badgeExp { background: rgba(255,82,82,0.15); color: #ff5252; }
+  .badgeOk { background: rgba(118,255,3,0.15); color: var(--green); }
+  .badgeWarn { background: rgba(255,152,0,0.15); color: #ff9800; }
+  .actionBtns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .copyWrap { display: flex; align-items: center; gap: 6px; }
+  .btnCopy { padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card2);
+    color: var(--muted); font-size: 0.72rem; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .btnCopy:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btnCopy.copied { border-color: var(--green); color: var(--green); }
+
+  .modalOverlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 200; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modalOverlay.active { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 32px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 0 60px rgba(0,229,255,0.15);
+  }
+  .modal h3 { color: var(--cyan); margin-bottom: 24px; font-size: 1.1rem; }
+  .formRow { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+  .formGroup { display: flex; flex-direction: column; flex: 1; min-width: 180px; }
+  .formGroup label { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .formGroup input, .formGroup select, .formGroup textarea {
+    padding: 10px 13px; background: var(--dark); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 0.9rem; outline: none; font-family: inherit;
+  }
+  .formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus { border-color: var(--cyan); }
+  .formGroup textarea { resize: vertical; min-height: 80px; }
+  .appNote { background: rgba(0,229,255,0.07); border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--cyan); margin-bottom: 14px; display: none; }
+  .macCodeBox { display: none; }
+  .modalActions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+  .renewBtns { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+  .renewBtns button { flex: 1; padding: 12px; border-radius: 8px; border: none; cursor: pointer;
+    font-weight: 700; font-size: 0.9rem; }
+  .r1 { background: rgba(0,229,255,0.15); color: var(--cyan); border: 1px solid var(--cyan) !important; }
+  .r3 { background: rgba(118,255,3,0.15); color: var(--green); border: 1px solid var(--green) !important; }
+  .r6 { background: rgba(255,152,0,0.15); color: #ff9800; border: 1px solid #ff9800 !important; }
+
+  .confirmBox { text-align: center; }
+  .confirmBox p { color: var(--muted); margin: 12px 0 24px; }
+
+  .emptyState { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .emptyState .icon { font-size: 3rem; margin-bottom: 12px; }
+
+  #importInput { display: none; }
+
+  .appsGrid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .appChip { display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+    background: var(--dark); border: 1px solid var(--border); border-radius: 20px;
+    cursor: pointer; font-size: 0.8rem; transition: all .15s; user-select: none; }
+  .appChip.selected { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.08); }
+  .required-star { color: #ff5252; }
+
+  @media(max-width:600px) {
+    header { padding: 10px 14px; }
+    main { padding: 16px 14px; }
+    .modal { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div id="loginBox">
+    <img src="logo.png" alt="M17LIV3 Logo"/>
+    <h2>Gestión IPTV</h2>
+    <p>Panel de administración</p>
+    <div id="loginErr">Usuario o contraseña incorrectos</div>
+    <input class="inp" type="text" id="loginUser" placeholder="Usuario" autocomplete="username"/>
+    <input class="inp" type="password" id="loginPass" placeholder="Contraseña" autocomplete="current-password"/>
+    <button class="btnPrimary" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appPage">
+  <header>
+    <img src="logo.png" alt="M17LIV3"/>
+    <h1>Panel IPTV</h1>
+    <div class="headerRight">
+      <button class="btnSm btnGreen" onclick="openNewClient()">+ Nuevo Cliente</button>
+      <button class="btnSm btnCyan" onclick="exportExcel()">&#11015; Exportar Excel</button>
+      <button class="btnSm btnGray" onclick="document.getElementById('importInput').click()">&#11014; Importar Excel</button>
+      <input type="file" id="importInput" accept=".xlsx,.xls" onchange="importExcel(event)"/>
+      <button class="btnSm btnRed" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="statCard"><div class="val cyan" id="statTotal">0</div><div class="lbl">Clientes totales</div></div>
+      <div class="statCard"><div class="val green" id="statActive">0</div><div class="lbl">Activos</div></div>
+      <div class="statCard"><div class="val orange" id="statSoon">0</div><div class="lbl">Expiran en 7 dias</div></div>
+      <div class="statCard"><div class="val red" id="statExp">0</div><div class="lbl">Expirados</div></div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Buscar por nombre, usuario..." oninput="renderTable()"/>
+      <select id="filterService" onchange="renderTable()">
+        <option value="">Todos los servicios</option>
+        <option value="TODO">TODO</option>
+        <option value="ESPANA">ESPANA</option>
+      </select>
+      <select id="filterStatus" onchange="renderTable()">
+        <option value="">Todos los estados</option>
+        <option value="ok">Activos</option>
+        <option value="warn">Expiran pronto</option>
+        <option value="exp">Expirados</option>
+      </select>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Usuario / Contrasena</th>
+            <th>Servicio</th>
+            <th>App Principal</th>
+            <th>Expiracion</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="clientsBody"></tbody>
+      </table>
+      <div id="emptyState" class="emptyState" style="display:none">
+        <div class="icon">&#128250;</div>
+        <div>No hay clientes. Anade el primero!</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modalOverlay" id="clientModal">
+  <div class="modal">
+    <h3 id="modalTitle">Nuevo Cliente</h3>
+    <input type="hidden" id="editId"/>
+    <div class="formRow">
+      <div class="formGroup">
+        <label>Nombre / Apodo <span class="required-star">*</span></label>
+        <input type="text" id="fName" placeholder="Ej: Juan Garcia"/>
+      </div>
+      <div class="formGroup">
+        <label>Servicio <span class="required-star">*</span></label>
+        <select id="fService">
+          <option value="TODO">TODO (todos los paises)</option>
+          <option value="ESPANA">ESPANA (solo canales Espana)</option>
+        </select>
+      </div>
+    </div>
+    <div class="formRow">
+      <div class="formGroup">
+        <label>Usuario <span class="required-star">*</span></label>
+        <input type="text" id="fUser" placeholder="usuario_iptv"/>
+      </div>
+      <div class="formGroup">
+        <label>Contrasena <span class="required-star">*</span></label>
+        <input type="text" id="fPass" placeholder="contrasena"/>
+      </div>
+    </div>
+    <div class="formRow">
+      <div class="formGroup" style="min-width:100%">
+        <label>Fecha de expiracion <span class="required-star">*</span></label>
+        <input type="date" id="fExpiry"/>
+      </div>
+    </div>
+    <div class="formGroup" style="margin-bottom:14px">
+      <label>App instalada <span class="required-star">*</span> (la primera seleccionada sera la principal)</label>
+      <div class="appsGrid" id="appsGrid"></div>
+    </div>
+    <div class="appNote" id="appNote"></div>
+    <div class="macCodeBox" id="macCodeBox">
+      <div id="macCodeForms"></div>
+    </div>
+    <div id="otraAppBox" style="display:none">
+      <div class="formRow">
+        <div class="formGroup">
+          <label>Nombre de la app <span class="required-star">*</span></label>
+          <input type="text" id="fOtraApp" placeholder="Nombre de la app"/>
+        </div>
+      </div>
+      <div class="formRow">
+        <div class="formGroup">
+          <label>Tiene MAC?</label>
+          <select id="fOtraHasMac" onchange="renderOtraExtras()">
+            <option value="no">No</option>
+            <option value="si">Si</option>
+          </select>
+        </div>
+        <div class="formGroup">
+          <label>Tiene Codigo?</label>
+          <select id="fOtraHasCode" onchange="renderOtraExtras()">
+            <option value="no">No</option>
+            <option value="si">Si</option>
+          </select>
+        </div>
+      </div>
+      <div id="otraExtrasBox"></div>
+    </div>
+    <div class="formGroup">
+      <label>Notas</label>
+      <textarea id="fNotes" placeholder="Informacion adicional..."></textarea>
+    </div>
+    <div id="formError" style="color:#ff5252;font-size:.82rem;margin-top:6px;display:none"></div>
+    <div class="modalActions">
+      <button class="btnSm btnGray" onclick="closeModal('clientModal')">Cancelar</button>
+      <button class="btnSm btnPrimary" style="padding:8px 20px" onclick="saveClient()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RENOVAR -->
+<div class="modalOverlay" id="renewModal">
+  <div class="modal" style="max-width:420px">
+    <h3>Renovar Suscripcion</h3>
+    <p style="color:var(--muted);font-size:.88rem" id="renewInfo"></p>
+    <div class="renewBtns">
+      <button class="r1" onclick="doRenew(1)">+1 Mes</button>
+      <button class="r3" onclick="doRenew(3)">+3 Meses</button>
+      <button class="r6" onclick="doRenew(6)">+6 Meses</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--muted)" id="renewPreview"></div>
+    <div class="modalActions">
+      <button class="btnSm btnGray" onclick="closeModal('renewModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ELIMINAR -->
+<div class="modalOverlay" id="deleteModal">
+  <div class="modal confirmBox" style="max-width:380px">
+    <h3 style="color:#ff5252">Eliminar Cliente</h3>
+    <p>Seguro que quieres eliminar este cliente? Esta accion no se puede deshacer.</p>
+    <div class="modalActions" style="justify-content:center">
+      <button class="btnSm btnGray" onclick="closeModal('deleteModal')">Cancelar</button>
+      <button class="btnSm btnRed" onclick="confirmDelete()">Si, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER DETALLE -->
+<div class="modalOverlay" id="viewModal">
+  <div class="modal" style="max-width:560px">
+    <h3 id="viewTitle" style="color:var(--cyan)"></h3>
+    <div id="viewContent"></div>
+    <div class="modalActions">
+      <button class="btnSm btnGray" onclick="closeModal('viewModal')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var ADMIN_USER = 'admin';
+var ADMIN_PASS = 'nuevaVIDA17..';
+
+var APPS = [
+  { name: 'M17LIV3', needsMac: false, needsCode: false },
+  { name: 'IBO PLAYER', needsMac: true, needsCode: true },
+  { name: 'KDSPLAYER', needsMac: false, needsCode: false },
+  { name: 'DEADPLAYER25', needsMac: false, needsCode: false },
+  { name: 'SHAMELTV', needsMac: true, needsCode: true },
+  { name: 'DEADSMART', needsMac: false, needsCode: false },
+  { name: 'NANOMID', needsMac: false, needsCode: false },
+  { name: 'VUPLAYER', needsMac: true, needsCode: true },
+  { name: 'OTRA APP NO CONOCIDA', needsMac: false, needsCode: false, isOther: true }
+];
+
+var clients = [];
+try { clients = JSON.parse(localStorage.getItem('iptv_clients') || '[]'); } catch(e) { clients = []; }
+var deleteTargetId = null;
+var renewTargetId = null;
+var selectedApps = [];
+
+function doLogin() {
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appPage').style.display = 'block';
+    renderTable();
+    updateStats();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+
+document.getElementById('loginPass').addEventListener('keydown', function(e) { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', function(e) { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginErr').style.display = 'none';
+}
+
+function saveData() { localStorage.setItem('iptv_clients', JSON.stringify(clients)); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function getStatus(expiry) {
+  if (!expiry) return 'unknown';
+  var now = new Date(); now.setHours(0,0,0,0);
+  var exp = new Date(expiry);
+  var diff = Math.floor((exp - now) / 86400000);
+  if (diff < 0) return 'exp';
+  if (diff <= 7) return 'warn';
+  return 'ok';
+}
+
+function statusBadge(expiry) {
+  var s = getStatus(expiry);
+  var now = new Date(); now.setHours(0,0,0,0);
+  var exp = new Date(expiry);
+  var diff = Math.floor((exp - now) / 86400000);
+  if (s === 'exp') return '<span class="badge badgeExp">Expirado</span>';
+  if (s === 'warn') return '<span class="badge badgeWarn">Expira en ' + diff + 'd</span>';
+  return '<span class="badge badgeOk">Activo</span>';
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  var parts = d.split('-');
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = clients.length;
+  document.getElementById('statActive').textContent = clients.filter(function(c){ return getStatus(c.expiry)==='ok'; }).length;
+  document.getElementById('statSoon').textContent = clients.filter(function(c){ return getStatus(c.expiry)==='warn'; }).length;
+  document.getElementById('statExp').textContent = clients.filter(function(c){ return getStatus(c.expiry)==='exp'; }).length;
+}
+
+function copyText(txt, btn) {
+  navigator.clipboard.writeText(txt).then(function() {
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copiar';
+      btn.classList.remove('copied');
+    }, 1800);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copiar';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+
+function renderTable() {
+  var search = document.getElementById('searchBox').value.toLowerCase();
+  var svc = document.getElementById('filterService').value;
+  var status = document.getElementById('filterStatus').value;
+
+  var filtered = clients.filter(function(c) {
+    var matchSearch = !search || c.name.toLowerCase().indexOf(search) >= 0 || (c.user||'').toLowerCase().indexOf(search) >= 0;
+    var matchSvc = !svc || c.service === svc;
+    var matchStatus = !status || getStatus(c.expiry) === status;
+    return matchSearch && matchSvc && matchStatus;
+  });
+
+  var tbody = document.getElementById('clientsBody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    document.getElementById('emptyState').style.display = 'block';
+  } else {
+    document.getElementById('emptyState').style.display = 'none';
+    filtered.forEach(function(c) {
+      var mainApp = c.apps && c.apps.length ? c.apps[0].name : '-';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><strong>' + esc(c.name) + '</strong></td>' +
+        '<td>' +
+          '<div class="copyWrap">' +
+            '<span style="font-family:monospace;color:var(--cyan)">' + esc(c.user||'-') + '</span>' +
+            (c.user ? '<button class="btnCopy" data-copy="' + esc(c.user) + '" onclick="copyText(this.dataset.copy,this)">Copiar</button>' : '') +
+          '</div>' +
+          '<div class="copyWrap" style="margin-top:5px">' +
+            '<span style="font-family:monospace;font-size:.8rem;color:var(--muted)">' + esc(c.pass||'-') + '</span>' +
+            (c.pass ? '<button class="btnCopy" data-copy="' + esc(c.pass) + '" onclick="copyText(this.dataset.copy,this)">Copiar</button>' : '') +
+          '</div>' +
+        '</td>' +
+        '<td><span class="badge ' + (c.service==='TODO'?'badgeTodo':'badgeEs') + '">' + esc(c.service||'-') + '</span></td>' +
+        '<td style="font-size:.8rem">' + esc(mainApp) + '</td>' +
+        '<td>' + formatDate(c.expiry) + '</td>' +
+        '<td>' + statusBadge(c.expiry) + '</td>' +
+        '<td><div class="actionBtns">' +
+          '<button class="btnSm btnGray" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="viewClient(this.dataset.id)">Ver</button>' +
+          '<button class="btnSm btnCyan" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="editClient(this.dataset.id)">Editar</button>' +
+          '<button class="btnSm btnGreen" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="openRenew(this.dataset.id)">Renovar</button>' +
+          '<button class="btnSm btnRed" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="openDelete(this.dataset.id)">Borrar</button>' +
+        '</div></td>';
+      tbody.appendChild(tr);
+    });
+  }
+  updateStats();
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildAppsGrid() {
+  var grid = document.getElementById('appsGrid');
+  grid.innerHTML = '';
+  selectedApps = [];
+  APPS.forEach(function(app) {
+    var chip = document.createElement('div');
+    chip.className = 'appChip';
+    chip.dataset.app = app.name;
+    chip.textContent = app.name + (app.needsMac || app.needsCode ? ' (MAC/Cod)' : '');
+    chip.addEventListener('click', function() { toggleApp(app.name, chip); });
+    grid.appendChild(chip);
+  });
+}
+
+function toggleApp(appName, chip) {
+  var idx = selectedApps.indexOf(appName);
+  if (idx === -1) {
+    selectedApps.push(appName);
+    chip.classList.add('selected');
+  } else {
+    selectedApps.splice(idx, 1);
+    chip.classList.remove('selected');
+  }
+  updateAppRequirements();
+}
+
+function updateAppRequirements() {
+  var noteEl = document.getElementById('appNote');
+  var macBox = document.getElementById('macCodeBox');
+  var otraBox = document.getElementById('otraAppBox');
+
+  var requiredApps = selectedApps.filter(function(n) {
+    var a = APPS.find(function(x){ return x.name===n; });
+    return a && (a.needsMac || a.needsCode);
+  });
+
+  if (requiredApps.length > 0) {
+    noteEl.style.display = 'block';
+    noteEl.innerHTML = 'AVISO: ' + requiredApps.map(function(n){ return '<strong>' + n + '</strong> requiere MAC y Codigo'; }).join(' &bull; ');
+    macBox.style.display = 'block';
+    renderMacCodeForms();
+  } else {
+    noteEl.style.display = 'none';
+    macBox.style.display = 'none';
+  }
+
+  otraBox.style.display = selectedApps.indexOf('OTRA APP NO CONOCIDA') >= 0 ? 'block' : 'none';
+}
+
+function renderMacCodeForms() {
+  var box = document.getElementById('macCodeForms');
+  box.innerHTML = '';
+  var existing = getExistingMacCodes();
+  var requiredApps = selectedApps.filter(function(n) {
+    var a = APPS.find(function(x){ return x.name===n; });
+    return a && (a.needsMac || a.needsCode);
+  });
+  requiredApps.forEach(function(appName) {
+    var prev = existing[appName] || {};
+    var safeId = appName.replace(/\s/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+    var div = document.createElement('div');
+    div.className = 'formRow';
+    div.innerHTML =
+      '<div class="formGroup">' +
+        '<label>MAC de <strong style="color:var(--cyan)">' + esc(appName) + '</strong> <span class="required-star">*</span></label>' +
+        '<input type="text" id="mac_' + safeId + '" placeholder="XX:XX:XX:XX:XX:XX" value="' + esc(prev.mac||'') + '"/>' +
+      '</div>' +
+      '<div class="formGroup">' +
+        '<label>Codigo de <strong style="color:var(--cyan)">' + esc(appName) + '</strong> <span class="required-star">*</span></label>' +
+        '<input type="text" id="code_' + safeId + '" placeholder="Codigo de activacion" value="' + esc(prev.code||'') + '"/>' +
+      '</div>';
+    box.appendChild(div);
+  });
+}
+
+function getExistingMacCodes() {
+  var map = {};
+  var id = document.getElementById('editId').value;
+  if (!id) return map;
+  var c = clients.find(function(x){ return x.id===id; });
+  if (!c || !c.apps) return map;
+  c.apps.forEach(function(a) { if (a.mac || a.code) map[a.name] = { mac: a.mac, code: a.code }; });
+  return map;
+}
+
+function renderOtraExtras() {
+  var hasMac = document.getElementById('fOtraHasMac').value === 'si';
+  var hasCode = document.getElementById('fOtraHasCode').value === 'si';
+  var box = document.getElementById('otraExtrasBox');
+  box.innerHTML = '';
+  if (hasMac || hasCode) {
+    var div = document.createElement('div');
+    div.className = 'formRow';
+    if (hasMac) div.innerHTML += '<div class="formGroup"><label>MAC de la app</label><input type="text" id="fOtraMac" placeholder="XX:XX:XX:XX:XX:XX"/></div>';
+    if (hasCode) div.innerHTML += '<div class="formGroup"><label>Codigo de la app</label><input type="text" id="fOtraCode" placeholder="Codigo"/></div>';
+    box.appendChild(div);
+  }
+}
+
+function openNewClient() {
+  document.getElementById('editId').value = '';
+  document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
+  document.getElementById('fName').value = '';
+  document.getElementById('fUser').value = '';
+  document.getElementById('fPass').value = '';
+  document.getElementById('fExpiry').value = '';
+  document.getElementById('fService').value = 'TODO';
+  document.getElementById('fNotes').value = '';
+  document.getElementById('formError').style.display = 'none';
+  buildAppsGrid();
+  updateAppRequirements();
+  openModal('clientModal');
+}
+
+function editClient(id) {
+  var c = clients.find(function(x){ return x.id===id; });
+  if (!c) return;
+  document.getElementById('editId').value = id;
+  document.getElementById('modalTitle').textContent = 'Editar Cliente';
+  document.getElementById('fName').value = c.name;
+  document.getElementById('fUser').value = c.user||'';
+  document.getElementById('fPass').value = c.pass||'';
+  document.getElementById('fExpiry').value = c.expiry||'';
+  document.getElementById('fService').value = c.service||'TODO';
+  document.getElementById('fNotes').value = c.notes||'';
+  document.getElementById('formError').style.display = 'none';
+  buildAppsGrid();
+  selectedApps = (c.apps||[]).map(function(a){ return a.name; });
+  selectedApps.forEach(function(appName) {
+    var chip = document.querySelector('[data-app="' + appName + '"]');
+    if (chip) chip.classList.add('selected');
+  });
+  updateAppRequirements();
+  if (selectedApps.indexOf('OTRA APP NO CONOCIDA') >= 0) {
+    var otra = (c.apps||[]).find(function(a){ return a.name==='OTRA APP NO CONOCIDA'; });
+    if (otra) {
+      document.getElementById('fOtraApp').value = otra.customName||'';
+      document.getElementById('fOtraHasMac').value = otra.mac ? 'si' : 'no';
+      document.getElementById('fOtraHasCode').value = otra.code ? 'si' : 'no';
+      renderOtraExtras();
+      setTimeout(function() {
+        if (otra.mac && document.getElementById('fOtraMac')) document.getElementById('fOtraMac').value = otra.mac;
+        if (otra.code && document.getElementById('fOtraCode')) document.getElementById('fOtraCode').value = otra.code;
+      }, 50);
+    }
+  }
+  openModal('clientModal');
+}
+
+function saveClient() {
+  var errEl = document.getElementById('formError');
+  errEl.style.display = 'none';
+  var name = document.getElementById('fName').value.trim();
+  var user = document.getElementById('fUser').value.trim();
+  var pass = document.getElementById('fPass').value.trim();
+  var expiry = document.getElementById('fExpiry').value;
+  var service = document.getElementById('fService').value;
+  var notes = document.getElementById('fNotes').value.trim();
+
+  if (!name) { errEl.textContent = 'El nombre es obligatorio.'; errEl.style.display='block'; return; }
+  if (!user) { errEl.textContent = 'El usuario es obligatorio.'; errEl.style.display='block'; return; }
+  if (!pass) { errEl.textContent = 'La contrasena es obligatoria.'; errEl.style.display='block'; return; }
+  if (!expiry) { errEl.textContent = 'La fecha de expiracion es obligatoria.'; errEl.style.display='block'; return; }
+  if (selectedApps.length === 0) { errEl.textContent = 'Debes seleccionar al menos una app.'; errEl.style.display='block'; return; }
+
+  for (var i = 0; i < selectedApps.length; i++) {
+    var appName = selectedApps[i];
+    var appDef = APPS.find(function(x){ return x.name===appName; });
+    if (appDef && appDef.needsMac) {
+      var safeId = appName.replace(/\s/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+      var macEl = document.getElementById('mac_' + safeId);
+      if (!macEl || !macEl.value.trim()) { errEl.textContent = 'La MAC de ' + appName + ' es obligatoria.'; errEl.style.display='block'; return; }
+    }
+    if (appDef && appDef.needsCode) {
+      var safeId2 = appName.replace(/\s/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+      var codeEl = document.getElementById('code_' + safeId2);
+      if (!codeEl || !codeEl.value.trim()) { errEl.textContent = 'El Codigo de ' + appName + ' es obligatorio.'; errEl.style.display='block'; return; }
+    }
+  }
+
+  if (selectedApps.indexOf('OTRA APP NO CONOCIDA') >= 0) {
+    if (!document.getElementById('fOtraApp').value.trim()) { errEl.textContent = 'Especifica el nombre de la app desconocida.'; errEl.style.display='block'; return; }
+  }
+
+  var appsData = selectedApps.map(function(appName) {
+    var appDef = APPS.find(function(x){ return x.name===appName; });
+    var obj = { name: appName };
+    if (appName === 'OTRA APP NO CONOCIDA') {
+      obj.customName = document.getElementById('fOtraApp').value.trim();
+      var hm = document.getElementById('fOtraHasMac').value === 'si';
+      var hc = document.getElementById('fOtraHasCode').value === 'si';
+      if (hm && document.getElementById('fOtraMac')) obj.mac = document.getElementById('fOtraMac').value.trim();
+      if (hc && document.getElementById('fOtraCode')) obj.code = document.getElementById('fOtraCode').value.trim();
+    } else if (appDef && (appDef.needsMac || appDef.needsCode)) {
+      var k = appName.replace(/\s/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+      if (appDef.needsMac) obj.mac = document.getElementById('mac_'+k).value.trim();
+      if (appDef.needsCode) obj.code = document.getElementById('code_'+k).value.trim();
+    }
+    return obj;
+  });
+
+  var id = document.getElementById('editId').value;
+  if (id) {
+    var idx = clients.findIndex(function(x){ return x.id===id; });
+    clients[idx] = Object.assign({}, clients[idx], { name: name, user: user, pass: pass, expiry: expiry, service: service, notes: notes, apps: appsData });
+  } else {
+    clients.push({ id: genId(), name: name, user: user, pass: pass, expiry: expiry, service: service, notes: notes, apps: appsData, createdAt: new Date().toISOString() });
+  }
+
+  saveData();
+  closeModal('clientModal');
+  renderTable();
+}
+
+function viewClient(id) {
+  var c = clients.find(function(x){ return x.id===id; });
+  if (!c) return;
+  document.getElementById('viewTitle').textContent = c.name;
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">';
+  html += '<div><div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:4px">Usuario</div>';
+  html += '<div class="copyWrap"><span style="font-family:monospace;color:var(--cyan)">' + esc(c.user||'-') + '</span>';
+  if (c.user) html += '<button class="btnCopy" data-copy="' + esc(c.user) + '" onclick="copyText(this.dataset.copy,this)">Copiar</button>';
+  html += '</div></div>';
+  html += '<div><div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:4px">Contrasena</div>';
+  html += '<div class="copyWrap"><span style="font-family:monospace">' + esc(c.pass||'-') + '</span>';
+  if (c.pass) html += '<button class="btnCopy" data-copy="' + esc(c.pass) + '" onclick="copyText(this.dataset.copy,this)">Copiar</button>';
+  html += '</div></div>';
+  html += '<div><div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:4px">Servicio</div>';
+  html += '<span class="badge ' + (c.service==='TODO'?'badgeTodo':'badgeEs') + '">' + esc(c.service) + '</span></div>';
+  html += '<div><div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:4px">Expiracion</div>';
+  html += formatDate(c.expiry) + ' ' + statusBadge(c.expiry) + '</div>';
+  html += '</div>';
+  html += '<div style="margin-bottom:14px"><div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:8px">Apps instaladas</div>';
+  (c.apps||[]).forEach(function(a, i) {
+    html += '<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px">';
+    html += '<strong style="color:' + (i===0?'var(--cyan)':'var(--text)') + '">' + esc(a.name) + (a.customName?' ('+esc(a.customName)+')':'') + '</strong>';
+    if (i===0) html += ' <span style="font-size:.7rem;color:var(--green)">[Principal]</span>';
+    if (a.mac) {
+      html += '<div style="font-size:.8rem;color:var(--muted);margin-top:6px">MAC: <span style="font-family:monospace;color:var(--text)">' + esc(a.mac) + '</span> ';
+      html += '<button class="btnCopy" data-copy="' + esc(a.mac) + '" onclick="copyText(this.dataset.copy,this)">Copiar MAC</button></div>';
+    }
+    if (a.code) {
+      html += '<div style="font-size:.8rem;color:var(--muted)">Codigo: <span style="font-family:monospace;color:var(--text)">' + esc(a.code) + '</span> ';
+      html += '<button class="btnCopy" data-copy="' + esc(a.code) + '" onclick="copyText(this.dataset.copy,this)">Copiar Cod</button></div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  if (c.notes) {
+    html += '<div><div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:6px">Notas</div>';
+    html += '<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.88rem">' + esc(c.notes) + '</div></div>';
+  }
+  document.getElementById('viewContent').innerHTML = html;
+  openModal('viewModal');
+}
+
+function openDelete(id) { deleteTargetId = id; openModal('deleteModal'); }
+function confirmDelete() {
+  clients = clients.filter(function(x){ return x.id !== deleteTargetId; });
+  saveData(); closeModal('deleteModal'); renderTable();
+}
+
+function openRenew(id) {
+  renewTargetId = id;
+  var c = clients.find(function(x){ return x.id===id; });
+  document.getElementById('renewInfo').textContent = 'Cliente: ' + c.name + ' - Expira: ' + formatDate(c.expiry);
+  document.getElementById('renewPreview').textContent = '';
+  openModal('renewModal');
+}
+
+function doRenew(months) {
+  var c = clients.find(function(x){ return x.id===renewTargetId; });
+  if (!c) return;
+  var base = c.expiry ? new Date(c.expiry) : new Date();
+  base.setMonth(base.getMonth() + months);
+  var newDate = base.toISOString().split('T')[0];
+  c.expiry = newDate;
+  saveData();
+  renderTable();
+  closeModal('renewModal');
+  alert('Renovacion aplicada. Nueva fecha de expiracion: ' + formatDate(newDate));
+}
+
+function exportExcel() {
+  if (clients.length === 0) { alert('No hay clientes para exportar.'); return; }
+  var rows = clients.map(function(c) {
+    var appsStr = (c.apps||[]).map(function(a) {
+      var s = a.name;
+      if (a.customName) s += ' (' + a.customName + ')';
+      if (a.mac) s += ' MAC:' + a.mac;
+      if (a.code) s += ' CODE:' + a.code;
+      return s;
+    }).join(' | ');
+    return {
+      'ID': c.id,
+      'Nombre': c.name,
+      'Usuario': c.user,
+      'Contrasena': c.pass,
+      'Servicio': c.service,
+      'Expiracion': c.expiry,
+      'Apps': appsStr,
+      'Notas': c.notes,
+      'Creado': c.createdAt ? c.createdAt.split('T')[0] : ''
+    };
+  });
+  var ws = XLSX.utils.json_to_sheet(rows);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Clientes IPTV');
+  XLSX.writeFile(wb, 'M17LIV3_clientes_' + new Date().toISOString().split('T')[0] + '.xlsx');
+}
+
+function importExcel(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, { type: 'binary' });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws);
+      var imported = 0;
+      rows.forEach(function(row) {
+        if (!row['Nombre'] || !row['Usuario']) return;
+        var existingIdx = clients.findIndex(function(c){ return c.id===row['ID']; });
+        var appsRaw = (row['Apps']||'').split(' | ').filter(Boolean);
+        var apps = appsRaw.map(function(a) {
+          var obj = {};
+          var macMatch = a.match(/MAC:([^\s]+)/);
+          var codeMatch = a.match(/CODE:([^\s]+)/);
+          obj.mac = macMatch ? macMatch[1] : '';
+          obj.code = codeMatch ? codeMatch[1] : '';
+          obj.name = a.replace(/\s*MAC:[^\s]+/,'').replace(/\s*CODE:[^\s]+/,'').replace(/\s*\(.*?\)/,'').trim();
+          var customMatch = a.match(/\(([^)]+)\)/);
+          if (customMatch) obj.customName = customMatch[1];
+          return obj;
+        });
+        var newClient = {
+          id: row['ID'] || genId(),
+          name: row['Nombre']||'',
+          user: row['Usuario']||'',
+          pass: row['Contrasena']||'',
+          service: row['Servicio']||'TODO',
+          expiry: row['Expiracion']||'',
+          notes: row['Notas']||'',
+          apps: apps.length ? apps : [],
+          createdAt: row['Creado'] || new Date().toISOString()
+        };
+        if (existingIdx >= 0) clients[existingIdx] = newClient;
+        else clients.push(newClient);
+        imported++;
+      });
+      saveData(); renderTable();
+      alert('Importados/actualizados: ' + imported + ' clientes.');
+    } catch(err) {
+      alert('Error al importar: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+renderTable();
+</script>
+</body>
+</html>
