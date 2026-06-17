@@ -142,10 +142,34 @@
   .appChip.selected { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.08); }
   .required-star { color: #ff5252; }
 
-  @media(max-width:600px) {
-    header { padding: 10px 14px; }
-    main { padding: 16px 14px; }
-    .modal { padding: 20px 16px; }
+  @media(max-width:768px) {
+    header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+    header h1 { font-size: .85rem; }
+    header img { height: 36px; }
+    .headerRight { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .headerRight button { width: 100%; text-align: center; font-size: .75rem; padding: 8px 6px; }
+    main { padding: 12px 10px; }
+    .stats { gap: 8px; }
+    .statCard { min-width: 120px; padding: 12px 14px; }
+    .statCard .val { font-size: 1.5rem; }
+    .toolbar { flex-direction: column; }
+    .toolbar input, .toolbar select { width: 100%; }
+    .tableWrap { font-size: .78rem; }
+    th, td { padding: 8px 8px; }
+    .actionBtns { flex-direction: column; gap: 4px; }
+    .actionBtns button { width: 100%; text-align: center; }
+    .modal { padding: 18px 14px; }
+    .formRow { flex-direction: column; }
+    .formGroup { min-width: 100%; }
+    .renewBtns { flex-direction: column; }
+    .renewBtns button { width: 100%; }
+    .modalActions { flex-direction: column; }
+    .modalActions button { width: 100%; text-align: center; }
+    table thead { display: none; }
+    table tr { display: block; background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; padding: 10px; }
+    table td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 5px 4px; font-size: .82rem; flex-wrap: wrap; gap: 4px; }
+    table td:before { content: attr(data-label); color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; margin-right: 8px; }
+    .copyWrap { flex-wrap: wrap; }
   }
 </style>
 </head>
@@ -475,8 +499,8 @@ function renderTable() {
       var mainApp = c.apps && c.apps.length ? c.apps[0].name : '-';
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><strong>' + esc(c.name) + '</strong></td>' +
-        '<td>' +
+        '<td data-label="Cliente"><strong>' + esc(c.name) + '</strong></td>' +
+        '<td data-label="Usuario / Contrasena">' +
           '<div class="copyWrap">' +
             '<span style="font-family:monospace;color:var(--cyan)">' + esc(c.user||'-') + '</span>' +
             (c.user ? '<button class="btnCopy" data-copy="' + esc(c.user) + '" onclick="copyText(this.dataset.copy,this)">Copiar</button>' : '') +
@@ -486,11 +510,11 @@ function renderTable() {
             (c.pass ? '<button class="btnCopy" data-copy="' + esc(c.pass) + '" onclick="copyText(this.dataset.copy,this)">Copiar</button>' : '') +
           '</div>' +
         '</td>' +
-        '<td><span class="badge ' + (c.service==='TODO'?'badgeTodo':'badgeEs') + '">' + esc(c.service||'-') + '</span></td>' +
-        '<td style="font-size:.8rem">' + esc(mainApp) + '</td>' +
-        '<td>' + formatDate(c.expiry) + '</td>' +
-        '<td>' + statusBadge(c.expiry) + '</td>' +
-        '<td><div class="actionBtns">' +
+        '<td data-label="Servicio"><span class="badge ' + (c.service==='TODO'?'badgeTodo':'badgeEs') + '">' + esc(c.service||'-') + '</span></td>' +
+        '<td data-label="App Principal" style="font-size:.8rem">' + esc(mainApp) + '</td>' +
+        '<td data-label="Expiracion">' + formatDate(c.expiry) + '</td>' +
+        '<td data-label="Estado">' + statusBadge(c.expiry) + '</td>' +
+        '<td data-label="Acciones"><div class="actionBtns">' +
           '<button class="btnSm btnGray" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="viewClient(this.dataset.id)">Ver</button>' +
           '<button class="btnSm btnCyan" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="editClient(this.dataset.id)">Editar</button>' +
           '<button class="btnSm btnGreen" style="font-size:.75rem;padding:5px 10px" data-id="' + c.id + '" onclick="openRenew(this.dataset.id)">Renovar</button>' +
