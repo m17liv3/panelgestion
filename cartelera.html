@@ -5,193 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>M17LIV3 - Cartelera</title>
 <style>
-  * { box-sizing:border-box; margin:0; padding:0; user-select:none; -webkit-user-select:none; -moz-user-select:none; }
-  body {
-    background: #0d0d14;
-    color: #eeeef5;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .header {
-    width: 100%;
-    background: linear-gradient(180deg, #13131e 0%, rgba(13,13,20,0) 100%);
-    padding: 24px 20px 16px;
-    text-align: center;
-    border-bottom: 1px solid rgba(0,229,255,0.1);
-  }
-  .header img {
-    height: 56px;
-    margin-bottom: 8px;
-  }
-  .header h1 {
-    font-size: 13px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: #00e5ff;
-    font-weight: 600;
-  }
-  .container {
-    width: 100%;
-    max-width: 600px;
-    padding: 24px 16px 40px;
-  }
-  .evento-card {
-    background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(105,255,71,0.05));
-    border: 1px solid rgba(0,229,255,0.25);
-    border-radius: 16px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .evento-label {
-    padding: 10px 16px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #00e5ff;
-    border-bottom: 1px solid rgba(0,229,255,0.15);
-    background: rgba(0,229,255,0.05);
-  }
-  .evento-card img {
-    width: 100%;
-    display: block;
-    max-height: 320px;
-    object-fit: cover;
-  }
-  .texto-card {
-    background: #16161f;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    line-height: 1.7;
-    font-size: 15px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: rgba(238,238,245,0.3);
-    font-size: 14px;
-  }
-  .empty span { font-size: 48px; display:block; margin-bottom:12px; }
-  .loading {
-    text-align: center;
-    padding: 80px 20px;
-    color: rgba(0,229,255,0.5);
-    font-size: 13px;
-    letter-spacing: 2px;
-  }
-  .footer {
-    margin-top: auto;
-    padding: 20px;
-    text-align: center;
-    font-size: 11px;
-    color: rgba(238,238,245,0.2);
-    letter-spacing: 1px;
-  }
-  .fecha {
-    text-align: center;
-    font-size: 13px;
-    color: rgba(0,229,255,0.6);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    font-weight: 600;
-  }
-  .refresh-btn {
-    display: block;
-    margin: 0 auto 20px;
-    background: rgba(0,229,255,0.1);
-    border: 1px solid rgba(0,229,255,0.3);
-    color: #00e5ff;
-    padding: 10px 28px;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
-    letter-spacing: 1px;
-  }
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;}
+body{background:#0d0d14;color:#eeeef5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.header{width:100%;background:linear-gradient(180deg,#13131e 0%,rgba(13,13,20,0) 100%);padding:24px 20px 16px;text-align:center;border-bottom:1px solid rgba(0,229,255,0.1);}
+.header img{height:56px;margin-bottom:8px;}
+.header h1{font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#00e5ff;font-weight:600;}
+.container{width:100%;max-width:600px;padding:24px 16px 40px;}
+.card{border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.card-label{padding:10px 16px;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;border-bottom:1px solid;}
+.card-body{padding:14px 16px;font-size:14px;font-weight:700;letter-spacing:1px;text-align:center;}
+.texto-card{background:#16161f;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:20px;line-height:1.7;font-size:15px;white-space:pre-wrap;word-break:break-word;}
+.empty{text-align:center;padding:60px 20px;color:rgba(238,238,245,0.3);font-size:14px;}
+.empty span{font-size:48px;display:block;margin-bottom:12px;}
+.loading{text-align:center;padding:80px 20px;color:rgba(0,229,255,0.5);font-size:13px;}
+.footer{margin-top:auto;padding:20px;text-align:center;font-size:11px;color:rgba(238,238,245,0.2);}
+.refresh-btn{display:block;margin:0 auto 20px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#00e5ff;padding:10px 28px;border-radius:20px;font-size:13px;cursor:pointer;}
 </style>
 </head>
 <body>
 <div class="header">
   <img src="logo.png" alt="M17LIV3" onerror="this.style.display='none'"/>
-  <h1>Cartelera del día</h1>
+  <h1>Cartelera del d&iacute;a</h1>
 </div>
-
 <div class="container">
-  <div class="fecha" id="fechaHoy"></div>
-  <div id="content"><div class="loading">⏳ Cargando...</div></div>
-  <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+
+  <!-- FECHA CARD - mismo estilo que evento -->
+  <div class="card" style="background:linear-gradient(135deg,rgba(105,255,71,0.08),rgba(0,229,255,0.06));border:1px solid rgba(105,255,71,0.35);">
+    <div class="card-label" style="color:#69ff47;border-bottom-color:rgba(105,255,71,0.2);background:rgba(105,255,71,0.05);">
+      &#128197; Hoy es &#127774;
+    </div>
+    <div class="card-body" style="color:#69ff47;" id="fhoy">...</div>
+  </div>
+
+  <div id="content"><div class="loading">&#9203; Cargando...</div></div>
+  <button class="refresh-btn" onclick="loadData()">&#8635; Actualizar</button>
 </div>
-
-<div class="footer">M17LIV3 © 2025</div>
-
+<div class="footer">M17LIV3 &copy; 2025</div>
 <script>
 var BIN_ID = '6a330946da38895dfed2f865';
 var KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
 
+var DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var now = new Date();
+document.getElementById('fhoy').textContent = DIAS[now.getDay()] + ', ' + now.getDate() + ' de ' + MESES[now.getMonth()] + ' ' + now.getFullYear();
+
 async function loadData() {
   var el = document.getElementById('content');
-  el.innerHTML = '<div class="loading">⏳ Cargando...</div>';
+  el.innerHTML = '<div class="loading">&#9203; Cargando...</div>';
   try {
-    var res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
-      headers: { 'X-Master-Key': KEY }
-    });
-    if (!res.ok) throw new Error('Error ' + res.status);
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', { headers: { 'X-Master-Key': KEY } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     var data = await res.json();
-    var record = data.record || {};
-    var texto = (record.texto || '').trim();
-    var imgUrl = (record.imagen_dia || '').trim();
-
+    var rec = data.record || {};
+    var texto = (rec.texto || '').trim();
+    var imgUrl = (rec.imagen_dia || '').trim();
     if (!texto && !imgUrl) {
-      el.innerHTML = '<div class="empty"><span>📋</span>No hay contenido publicado aún</div>';
+      el.innerHTML = '<div class="empty"><span>&#128203;</span>No hay contenido publicado a&uacute;n</div>';
       return;
     }
-
-    var html = '';
+    var h = '';
     if (imgUrl) {
-      html += '<div class="evento-card">';
-      html += '<div class="evento-label">⭐ Evento exclusivo del día ⭐</div>';
-      html += '<img src="' + imgUrl + '" alt="Evento del día"/>';
-      html += '</div>';
+      h += '<div class="card" style="background:linear-gradient(135deg,rgba(0,229,255,0.08),rgba(105,255,71,0.05));border:1px solid rgba(0,229,255,0.25);">';
+      h += '<div class="card-label" style="color:#00e5ff;border-bottom-color:rgba(0,229,255,0.15);background:rgba(0,229,255,0.05);">&#11088; Evento exclusivo del d&iacute;a &#11088;</div>';
+      h += '<img src="' + imgUrl + '" alt="Evento" style="width:100%;display:block;max-height:320px;object-fit:cover;"/>';
+      h += '</div>';
     }
     if (texto) {
-      html += '<div class="texto-card">' + texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
+      h += '<div class="texto-card">' + texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>') + '</div>';
     }
-    el.innerHTML = html;
-
-    // Register visit
+    el.innerHTML = h;
     try {
       var today = new Date().toISOString().slice(0,10);
-      var visits = record.visits || {};
+      var visits = rec.visits || {};
       visits[today] = (visits[today] || 0) + 1;
-      var updated = Object.assign({}, record, {visits: visits});
-      await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': KEY },
-        body: JSON.stringify(updated)
-      });
+      await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, { method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key':KEY}, body:JSON.stringify(Object.assign({},rec,{visits:visits})) });
     } catch(e) {}
-
   } catch(e) {
-    el.innerHTML = '<div class="empty"><span>⚠️</span>No se pudo cargar el contenido.<br>Comprueba tu conexión.</div>';
+    el.innerHTML = '<div class="empty"><span>&#9888;</span>No se pudo cargar.<br>Comprueba tu conexi&oacute;n.</div>';
   }
 }
-
-// Mostrar fecha actual
-(function() {
-  var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  var now = new Date();
-  var str = dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' ' + now.getFullYear();
-  document.getElementById('fechaHoy').textContent = str;
-})();
-
 loadData();
 </script>
 </body>
