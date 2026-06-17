@@ -923,7 +923,7 @@ function copyClienteLink() {
   }).catch(function() { showToast('No se pudo copiar','error'); });
 }
 
-async async function cartLoadExisting() {
+async function cartLoadExisting() {
   try {
     var res = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
       headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
@@ -959,7 +959,7 @@ async async function cartLoadExisting() {
   } catch(e) {}
 }
 
-async async function cartSave() {
+async function cartSave() {
   var btn = document.getElementById('cart-save-btn');
   var texto = document.getElementById('cart-texto').value;
   btn.disabled = true;
@@ -983,7 +983,7 @@ async async function cartSave() {
   btn.textContent = 'Guardar y publicar';
 }
 
-async async function cartClear() {
+async function cartClear() {
   if (!confirm('Borrar toda la cartelera?')) return;
   document.getElementById('cart-texto').value = '';
   document.getElementById('cart-char-count').textContent = '0 caracteres';
