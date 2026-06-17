@@ -222,7 +222,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, 'S
     <div id="loginErr">Usuario o contrasena incorrectos</div>
     <input class="inp" type="text" id="lUser" placeholder="Usuario" autocomplete="username"/>
     <input class="inp" type="password" id="lPass" placeholder="Contrasena" autocomplete="current-password"/>
-    <button class="btnMain" onclick="doLogin()">Entrar</button>
+    <button type="button" class="btnMain" onclick="doLogin()">Entrar</button>
   </div>
 </div>
 
@@ -440,18 +440,30 @@ var filterSt = '';
 var showFilters = false;
 
 function doLogin() {
-  var u = document.getElementById('lUser').value.trim();
-  var p = document.getElementById('lPass').value;
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('appPage').style.display = 'flex';
-    renderCards(); updateStats();
-  } else {
-    document.getElementById('loginErr').style.display = 'block';
-  }
+  try {
+    var u = document.getElementById('lUser').value.trim();
+    var p = document.getElementById('lPass').value;
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      var lp = document.getElementById('loginPage');
+      var ap = document.getElementById('appPage');
+      lp.style.display = 'none';
+      ap.style.display = 'flex';
+      ap.style.flexDirection = 'column';
+      ap.style.height = '100vh';
+      renderCards(); 
+      updateStats();
+    } else {
+      var err = document.getElementById('loginErr');
+      if(err) err.style.display = 'block';
+    }
+  } catch(ex) { alert('Error login: ' + ex.message); }
 }
-document.getElementById('lPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-document.getElementById('lUser').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+document.addEventListener('DOMContentLoaded', function() {
+  var lp = document.getElementById('lPass');
+  var lu = document.getElementById('lUser');
+  if(lp) lp.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  if(lu) lu.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+});
 function doLogout() {
   closeSheet('menuSheet','menuOverlay');
   document.getElementById('appPage').classList.remove('active');
@@ -897,7 +909,7 @@ function importExcel(event) {
   reader.readAsBinaryString(file);
 }
 
-renderCards();
+try { renderCards(); } catch(e) {}
 
 // ========== CARTELERA ADMIN ==========
 var CART_BIN_ID = '6a330946da38895dfed2f865';
