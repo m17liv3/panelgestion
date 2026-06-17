@@ -262,15 +262,6 @@ main {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---- AUTO REFRESH BADGE ---- */
-.auto-badge {
-  font-size: 10px;
-  color: rgba(57,255,20,0.6);
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.auto-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); opacity: 0.6; }
 
 @media (max-width: 400px) {
   .brand-name { font-size: 19px; }
@@ -325,11 +316,7 @@ main {
   </div>
 
   <div class="footer">
-    <div class="auto-badge">
-      <div class="auto-dot"></div>
-      Actualiza automaticamente cada 5 minutos
-    </div>
-    <button class="refresh-btn" id="refresh-btn" onclick="doRefresh()">
+      <button class="refresh-btn" id="refresh-btn" onclick="doRefresh()">
       <span class="icon">&#8634;</span> Actualizar ahora
     </button>
     <div class="footer-text">Actualizado diariamente &middot; M17LIV3</div>
@@ -414,7 +401,7 @@ function doRefresh() {
 // Auto refresco cada 5 minutos
 setDate();
 loadContent();
-setInterval(loadContent, 5 * 60 * 1000);
+
 
 document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 </script>
