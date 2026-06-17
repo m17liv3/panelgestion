@@ -911,9 +911,23 @@ function importExcel(event) {
 
 try { renderCards(); } catch(e) {}
 
+
+function showToast(msg, type) {
+  var el = document.getElementById('toastMsg');
+  if (!el) { alert(msg); return; }
+  el.textContent = msg;
+  el.style.borderColor = type === 'error' ? 'rgba(255,77,77,0.5)' : 'rgba(57,255,20,0.4)';
+  el.style.color = type === 'error' ? '#ff4d4d' : '#69ff47';
+  el.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function() {
+    el.style.transform = 'translateX(-50%) translateY(100px)';
+  }, 2800);
+}
+
 // ========== CARTELERA ADMIN ==========
 var CART_BIN_ID = '6a330946da38895dfed2f865';
-var CART_KEY = '$2a$10$DBMN2Up6v/HUybXjp/YGC.hvwYAALoeYP3wCWoTO9I9pvQzA8V4Oi';
+var CART_KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
 var CART_IMGBB_KEY = '8cb8483f3601ee9ae19b976b9f63d1fa';
 
 function openCartelera() {
@@ -1142,5 +1156,7 @@ async function cartResetVisits() {
   </div>
 </div>
 
+
+<div id="toastMsg" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:#1e1e2a;border:1px solid rgba(0,229,255,0.3);color:#eeeef5;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:transform 0.3s ease;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.5);">Mensaje</div>
 </body>
 </html>
