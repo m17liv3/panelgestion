@@ -1,115 +1,179 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>M17LIV3 – Cartelera</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M17LIV3 - Cartelera</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;}
-img{pointer-events:none;-webkit-user-drag:none;}
-:root{--bg:#0d0d14;--bg2:#111827;--card:#131d2e;--cyan:#00D4FF;--green:#39FF14;--text:#e8f0fe;--muted:#7AA3C8;--border:rgba(0,212,255,0.13);}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.logo-wrap{width:40px;height:40px;flex-shrink:0;}
-.logo-wrap svg{width:100%;height:100%;}
-.header-left{display:flex;align-items:center;gap:12px;}
-.brand-name{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#fff;line-height:1;}
-.brand-name .c{color:var(--cyan);} .brand-name .g{color:var(--green);}
-.brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
-.live-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.35);color:var(--green);font-size:10px;font-weight:700;letter-spacing:2px;padding:5px 12px;border-radius:20px;text-transform:uppercase;}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.4s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
-main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:20px 16px 40px;}
-.date-label{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:600;letter-spacing:1px;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;}
-.evento-wrap{display:none;margin-bottom:20px;}
-.evento-wrap.visible{display:block;}
-.evento-card{background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(57,255,20,0.04));border:1px solid rgba(0,212,255,0.25);border-radius:16px;overflow:hidden;position:relative;}
-.evento-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green));}
-.evento-header{display:flex;align-items:center;gap:6px;padding:10px 16px;background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(57,255,20,0.08));border-bottom:1px solid rgba(0,212,255,0.15);font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);}
-.evento-header .star{color:var(--green);font-size:12px;}
-.evento-img{width:100%;max-height:420px;object-fit:contain;display:block;background:#000;}
-.cartelera-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 18px;min-height:140px;position:relative;overflow:hidden;}
-.cartelera-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green));}
-.cartelera-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600;}
-.content-area{font-size:15px;line-height:1.85;color:var(--text);white-space:pre-wrap;word-break:break-word;}
-.content-area.loading{color:var(--muted);font-style:italic;}
-.content-area.empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0;}
-.corner-accent{position:absolute;bottom:12px;right:16px;font-family:'Rajdhani',sans-serif;font-size:64px;font-weight:700;color:rgba(0,212,255,0.04);line-height:1;pointer-events:none;}
-.footer{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:8px;}
-.refresh-btn{background:none;border:1px solid rgba(0,212,255,0.2);color:var(--muted);font-size:12px;padding:7px 20px;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;}
-.footer-text{font-size:11px;color:rgba(122,163,200,0.4);letter-spacing:1px;}
-@media(max-width:400px){.brand-name{font-size:19px;}.content-area{font-size:14px;}.evento-img{max-height:260px;}}
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background: #0d0d14;
+    color: #eeeef5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .header {
+    width: 100%;
+    background: linear-gradient(180deg, #13131e 0%, rgba(13,13,20,0) 100%);
+    padding: 24px 20px 16px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,229,255,0.1);
+  }
+  .header img {
+    height: 56px;
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #00e5ff;
+    font-weight: 600;
+  }
+  .container {
+    width: 100%;
+    max-width: 600px;
+    padding: 24px 16px 40px;
+  }
+  .evento-card {
+    background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(105,255,71,0.05));
+    border: 1px solid rgba(0,229,255,0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .evento-label {
+    padding: 10px 16px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #00e5ff;
+    border-bottom: 1px solid rgba(0,229,255,0.15);
+    background: rgba(0,229,255,0.05);
+  }
+  .evento-card img {
+    width: 100%;
+    display: block;
+    max-height: 320px;
+    object-fit: cover;
+  }
+  .texto-card {
+    background: #16161f;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    line-height: 1.7;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(238,238,245,0.3);
+    font-size: 14px;
+  }
+  .empty span { font-size: 48px; display:block; margin-bottom:12px; }
+  .loading {
+    text-align: center;
+    padding: 80px 20px;
+    color: rgba(0,229,255,0.5);
+    font-size: 13px;
+    letter-spacing: 2px;
+  }
+  .footer {
+    margin-top: auto;
+    padding: 20px;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(238,238,245,0.2);
+    letter-spacing: 1px;
+  }
+  .refresh-btn {
+    display: block;
+    margin: 0 auto 20px;
+    background: rgba(0,229,255,0.1);
+    border: 1px solid rgba(0,229,255,0.3);
+    color: #00e5ff;
+    padding: 10px 28px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="header-left">
-    <div class="logo-wrap">
-      <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="22" cy="22" r="18" stroke="#00D4FF" stroke-width="2" stroke-dasharray="6 3" stroke-linecap="round"/>
-        <circle cx="22" cy="22" r="13" stroke="#39FF14" stroke-width="1.2" stroke-dasharray="4 5" stroke-linecap="round"/>
-        <polygon points="17,15 31,22 17,29" fill="white"/>
-      </svg>
-    </div>
-    <div>
-      <div class="brand-name">M<span class="c">1</span>7<span class="g">LIV3</span></div>
-      <div class="brand-sub">Cartelera del dia</div>
-    </div>
-  </div>
-  <div class="live-pill"><div class="live-dot"></div>En vivo</div>
-</header>
-<main>
-  <div class="date-label" id="today-date">Cargando...</div>
-  <div class="evento-wrap" id="evento-wrap">
-    <div class="evento-card">
-      <div class="evento-header"><span class="star">&#9733;</span>&nbsp;Evento exclusivo del dia&nbsp;<span class="star">&#9733;</span></div>
-      <img class="evento-img" id="evento-img" src="" alt="Evento">
-    </div>
-  </div>
-  <div class="cartelera-card">
-    <div class="cartelera-label">&#128249; Cartelera de hoy</div>
-    <div class="content-area loading" id="content-display">Cargando...</div>
-    <div class="corner-accent">17</div>
-  </div>
-  <div class="footer">
-    <button class="refresh-btn" onclick="loadContent()">&#8634; Actualizar</button>
-    <div class="footer-text">M17LIV3 &middot; Actualizado diariamente</div>
-  </div>
-</main>
+<div class="header">
+  <img src="logo.png" alt="M17LIV3" onerror="this.style.display='none'"/>
+  <h1>Cartelera del día</h1>
+</div>
+
+<div class="container">
+  <div id="content"><div class="loading">⏳ Cargando...</div></div>
+  <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+</div>
+
+<div class="footer">M17LIV3 © 2025</div>
+
 <script>
-var BIN_ID='6a330946da38895dfed2f865';
-var API_KEY='$2a$10$DBMN2Up6v/HUybXjp/YGC.hvwYAALoeYP3wCWoTO9I9pvQzA8V4Oi';
-function setDate(){
-  var d=new Date();
-  var days=['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
-  var months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  document.getElementById('today-date').textContent=days[d.getDay()]+', '+d.getDate()+' de '+months[d.getMonth()]+' de '+d.getFullYear();
+var BIN_ID = '6a330946da38895dfed2f865';
+var KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
+
+async function loadData() {
+  var el = document.getElementById('content');
+  el.innerHTML = '<div class="loading">⏳ Cargando...</div>';
+  try {
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': KEY }
+    });
+    if (!res.ok) throw new Error('Error ' + res.status);
+    var data = await res.json();
+    var record = data.record || {};
+    var texto = (record.texto || '').trim();
+    var imgUrl = (record.imagen_dia || '').trim();
+
+    if (!texto && !imgUrl) {
+      el.innerHTML = '<div class="empty"><span>📋</span>No hay contenido publicado aún</div>';
+      return;
+    }
+
+    var html = '';
+    if (imgUrl) {
+      html += '<div class="evento-card">';
+      html += '<div class="evento-label">⭐ Evento exclusivo del día ⭐</div>';
+      html += '<img src="' + imgUrl + '" alt="Evento del día"/>';
+      html += '</div>';
+    }
+    if (texto) {
+      html += '<div class="texto-card">' + texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
+    }
+    el.innerHTML = html;
+
+    // Register visit
+    try {
+      var today = new Date().toISOString().slice(0,10);
+      var visits = record.visits || {};
+      visits[today] = (visits[today] || 0) + 1;
+      var updated = Object.assign({}, record, {visits: visits});
+      await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': KEY },
+        body: JSON.stringify(updated)
+      });
+    } catch(e) {}
+
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><span>⚠️</span>No se pudo cargar el contenido.<br>Comprueba tu conexión.</div>';
+  }
 }
-async function loadContent(){
-  var el=document.getElementById('content-display');
-  el.className='content-area loading';
-  el.textContent='Cargando...';
-  try{
-    var res=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':API_KEY,'X-Access-Key':API_KEY}});
-    var data=await res.json();
-    var rec=data.record||{};
-    var texto=rec.texto||'';
-    if(texto.trim()){el.className='content-area';el.textContent=texto;}
-    else{el.className='content-area empty';el.textContent='Hoy todavia no hay cartelera publicada.\nVuelve mas tarde.';}
-    var img=rec.imagen_dia||'';
-    if(img){document.getElementById('evento-img').src=img;document.getElementById('evento-wrap').className='evento-wrap visible';}
-    else{document.getElementById('evento-wrap').className='evento-wrap';}
-    // Registrar visita
-    var today=new Date().toISOString().slice(0,10);
-    rec.visits=rec.visits||{};
-    rec.visits[today]=(rec.visits[today]||0)+1;
-    fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY,'X-Access-Key':API_KEY},body:JSON.stringify(rec)});
-  }catch(e){el.className='content-area empty';el.textContent='No se pudo cargar. Pulsa Actualizar.';}
-}
-setDate();
-loadContent();
-document.addEventListener('contextmenu',function(e){e.preventDefault();});
+
+loadData();
 </script>
 </body>
 </html>

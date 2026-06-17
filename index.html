@@ -925,6 +925,19 @@ function showToast(msg, type) {
   }, 2800);
 }
 
+
+function cartUpdatePreview(record) {
+  var texto = record.texto || '';
+  var imgUrl = record.imagen_dia || '';
+  // Update preview text
+  var prevText = document.getElementById('cart-prev-texto');
+  if (prevText) prevText.innerHTML = texto.replace(/\n/g,'<br>');
+  // Update preview image
+  var prevEvento = document.getElementById('cart-prev-evento');
+  var prevImg = document.getElementById('cart-prev-img');
+  if (prevEvento) prevEvento.style.display = imgUrl ? 'block' : 'none';
+  if (prevImg) { prevImg.src = imgUrl; prevImg.style.display = imgUrl ? 'block' : 'none'; }
+}
 // ========== CARTELERA ADMIN ==========
 var CART_BIN_ID = '6a330946da38895dfed2f865';
 var CART_KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
@@ -1002,7 +1015,10 @@ async function cartSave() {
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY },
       body: JSON.stringify(record)
     });
-    if (saveRes.ok) { showToast('Cartelera publicada!'); }
+    if (saveRes.ok) { 
+      showToast('Cartelera publicada!');
+      cartUpdatePreview(record);
+    }
     else { showToast('Error al guardar','error'); }
   } catch(e) { showToast('Error de red','error'); }
   btn.disabled = false;
@@ -1039,12 +1055,15 @@ async function cartUploadImage() {
       var d2 = await r2.json();
       var rec2 = d2.record || {};
       rec2.imagen_dia = url;
-      await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID, {
+      var putRes = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY },
         body: JSON.stringify(rec2)
       });
-      showToast('Imagen publicada como evento!');
+      if (putRes.ok) {
+        showToast('Imagen publicada como evento!');
+        cartUpdatePreview(rec2);
+      } else { showToast('Imagen subida pero error al publicar','error'); }
     } else { throw new Error(); }
   } catch(e) { showToast('Error al subir imagen','error'); }
   btn.disabled = false;
