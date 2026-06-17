@@ -899,8 +899,8 @@ function importExcel(event) {
 renderCards();
 
 // ========== CARTELERA ADMIN ==========
-var CART_BIN_ID = '6a2d8241da38895dfebaae93';
-var CART_KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
+var CART_BIN_ID = '6a330946da38895dfed2f865';
+var CART_KEY = '$2a$10$DBMN2Up6v/HUybXjp/YGC.hvwYAALoeYP3wCWoTO9I9pvQzA8V4Oi';
 var CART_IMGBB_KEY = '8cb8483f3601ee9ae19b976b9f63d1fa';
 
 function openCartelera() {
@@ -922,7 +922,7 @@ function copyClienteLink() {
   }).catch(function() { showToast('No se pudo copiar','error'); });
 }
 
-async function cartLoadExisting() {
+async async function cartLoadExisting() {
   try {
     var res = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
       headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
@@ -958,7 +958,7 @@ async function cartLoadExisting() {
   } catch(e) {}
 }
 
-async function cartSave() {
+async async function cartSave() {
   var btn = document.getElementById('cart-save-btn');
   var texto = document.getElementById('cart-texto').value;
   btn.disabled = true;
@@ -982,7 +982,7 @@ async function cartSave() {
   btn.textContent = 'Guardar y publicar';
 }
 
-async function cartClear() {
+async async function cartClear() {
   if (!confirm('Borrar toda la cartelera?')) return;
   document.getElementById('cart-texto').value = '';
   document.getElementById('cart-char-count').textContent = '0 caracteres';

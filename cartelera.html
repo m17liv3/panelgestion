@@ -6,272 +6,43 @@
 <title>M17LIV3 – Cartelera</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-*, *::before, *::after { user-select: none; -webkit-user-select: none; }
-img { pointer-events: none; -webkit-user-drag: none; }
-
-:root {
-  --bg: #0d0d14;
-  --bg2: #111827;
-  --card: #131d2e;
-  --cyan: #00D4FF;
-  --green: #39FF14;
-  --text: #e8f0fe;
-  --muted: #7AA3C8;
-  --border: rgba(0,212,255,0.13);
-  --safe: env(safe-area-inset-bottom, 0px);
-}
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ---- HEADER ---- */
-header {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-wrap { width: 40px; height: 40px; flex-shrink: 0; }
-.logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
-.logo-wrap svg { width: 100%; height: 100%; }
-
-.brand-name {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #fff;
-  line-height: 1;
-}
-.brand-name .c { color: var(--cyan); }
-.brand-name .g { color: var(--green); }
-.brand-sub {
-  font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(57,255,20,0.1);
-  border: 1px solid rgba(57,255,20,0.35);
-  color: var(--green);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.live-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-/* ---- MAIN ---- */
-main {
-  flex: 1;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px 16px calc(30px + var(--safe));
-}
-
-/* ---- DATE BAR ---- */
-.date-bar {
-  margin-bottom: 18px;
-}
-.date-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  color: var(--cyan);
-  text-transform: uppercase;
-}
-.last-update {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-/* ---- EVENTO CARD ---- */
-.evento-wrap {
-  display: none;
-  margin-bottom: 20px;
-}
-.evento-wrap.visible { display: block; }
-
-.evento-card {
-  background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(57,255,20,0.04));
-  border: 1px solid rgba(0,212,255,0.25);
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-}
-.evento-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--cyan), var(--green));
-}
-.evento-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(57,255,20,0.08));
-  border-bottom: 1px solid rgba(0,212,255,0.15);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-.evento-header .star { color: var(--green); font-size: 12px; }
-.evento-img {
-  width: 100%;
-  max-height: 420px;
-  object-fit: contain;
-  display: block;
-  background: #000;
-}
-
-.scroll-hint {
-  display: none;
-  justify-content: center;
-  padding: 8px 0 14px;
-  font-size: 13px;
-  color: var(--cyan);
-  font-weight: 500;
-  animation: bounce 2s ease-in-out infinite;
-}
-.scroll-hint.visible { display: flex; }
-@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
-
-/* ---- CARTELERA CARD ---- */
-.cartelera-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px 18px;
-  min-height: 180px;
-  position: relative;
-  overflow: hidden;
-}
-.cartelera-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--cyan), var(--green));
-}
-.cartelera-label {
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 14px;
-  font-weight: 600;
-}
-.content-area {
-  font-size: 15px;
-  line-height: 1.85;
-  color: var(--text);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.content-area.loading { color: var(--muted); font-style: italic; }
-.content-area.empty {
-  color: var(--muted);
-  font-size: 14px;
-  text-align: center;
-  padding: 30px 0;
-}
-.corner-accent {
-  position: absolute;
-  bottom: 12px;
-  right: 16px;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 64px;
-  font-weight: 700;
-  color: rgba(0,212,255,0.04);
-  line-height: 1;
-  pointer-events: none;
-}
-
-/* ---- FOOTER ---- */
-.footer {
-  margin-top: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-.footer-text {
-  font-size: 11px;
-  color: rgba(122,163,200,0.4);
-  letter-spacing: 1px;
-  text-align: center;
-}
-.refresh-btn {
-  background: none;
-  border: 1px solid rgba(0,212,255,0.2);
-  color: var(--muted);
-  font-size: 12px;
-  padding: 7px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
-}
-.refresh-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-.refresh-btn.spinning { pointer-events: none; }
-.refresh-btn.spinning .icon { display: inline-block; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ---- AUTO REFRESH BADGE ---- */
-
-@media (max-width: 400px) {
-  .brand-name { font-size: 19px; }
-  .content-area { font-size: 14px; }
-  .evento-img { max-height: 280px; }
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;}
+img{pointer-events:none;-webkit-user-drag:none;}
+:root{--bg:#0d0d14;--bg2:#111827;--card:#131d2e;--cyan:#00D4FF;--green:#39FF14;--text:#e8f0fe;--muted:#7AA3C8;--border:rgba(0,212,255,0.13);}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo-wrap{width:40px;height:40px;flex-shrink:0;}
+.logo-wrap svg{width:100%;height:100%;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.brand-name{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#fff;line-height:1;}
+.brand-name .c{color:var(--cyan);} .brand-name .g{color:var(--green);}
+.brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.live-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.35);color:var(--green);font-size:10px;font-weight:700;letter-spacing:2px;padding:5px 12px;border-radius:20px;text-transform:uppercase;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:20px 16px 40px;}
+.date-label{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:600;letter-spacing:1px;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;}
+.evento-wrap{display:none;margin-bottom:20px;}
+.evento-wrap.visible{display:block;}
+.evento-card{background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(57,255,20,0.04));border:1px solid rgba(0,212,255,0.25);border-radius:16px;overflow:hidden;position:relative;}
+.evento-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green));}
+.evento-header{display:flex;align-items:center;gap:6px;padding:10px 16px;background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(57,255,20,0.08));border-bottom:1px solid rgba(0,212,255,0.15);font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);}
+.evento-header .star{color:var(--green);font-size:12px;}
+.evento-img{width:100%;max-height:420px;object-fit:contain;display:block;background:#000;}
+.cartelera-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 18px;min-height:140px;position:relative;overflow:hidden;}
+.cartelera-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green));}
+.cartelera-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600;}
+.content-area{font-size:15px;line-height:1.85;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+.content-area.loading{color:var(--muted);font-style:italic;}
+.content-area.empty{color:var(--muted);font-size:14px;text-align:center;padding:30px 0;}
+.corner-accent{position:absolute;bottom:12px;right:16px;font-family:'Rajdhani',sans-serif;font-size:64px;font-weight:700;color:rgba(0,212,255,0.04);line-height:1;pointer-events:none;}
+.footer{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.refresh-btn{background:none;border:1px solid rgba(0,212,255,0.2);color:var(--muted);font-size:12px;padding:7px 20px;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;}
+.footer-text{font-size:11px;color:rgba(122,163,200,0.4);letter-spacing:1px;}
+@media(max-width:400px){.brand-name{font-size:19px;}.content-area{font-size:14px;}.evento-img{max-height:260px;}}
 </style>
 </head>
 <body>
-
 <header>
   <div class="header-left">
     <div class="logo-wrap">
@@ -286,124 +57,59 @@ main {
       <div class="brand-sub">Cartelera del dia</div>
     </div>
   </div>
-  <div class="live-pill">
-    <div class="live-dot"></div>
-    En vivo
-  </div>
+  <div class="live-pill"><div class="live-dot"></div>En vivo</div>
 </header>
-
 <main>
-  <div class="date-bar">
-    <div class="date-label" id="today-date">Cargando...</div>
-    <div class="last-update" id="last-update"></div>
-  </div>
-
-  <div class="scroll-hint" id="scroll-hint">&#128071; Baja para ver la cartelera</div>
-
+  <div class="date-label" id="today-date">Cargando...</div>
   <div class="evento-wrap" id="evento-wrap">
     <div class="evento-card">
-      <div class="evento-header">
-        <span class="star">&#9733;</span> Evento exclusivo del dia <span class="star">&#9733;</span>
-      </div>
-      <img class="evento-img" id="evento-img" src="" alt="Evento del dia">
+      <div class="evento-header"><span class="star">&#9733;</span>&nbsp;Evento exclusivo del dia&nbsp;<span class="star">&#9733;</span></div>
+      <img class="evento-img" id="evento-img" src="" alt="Evento">
     </div>
   </div>
-
   <div class="cartelera-card">
     <div class="cartelera-label">&#128249; Cartelera de hoy</div>
-    <div class="content-area loading" id="content-display">Cargando cartelera...</div>
+    <div class="content-area loading" id="content-display">Cargando...</div>
     <div class="corner-accent">17</div>
   </div>
-
   <div class="footer">
-      <button class="refresh-btn" id="refresh-btn" onclick="doRefresh()">
-      <span class="icon">&#8634;</span> Actualizar ahora
-    </button>
-    <div class="footer-text">Actualizado diariamente &middot; M17LIV3</div>
+    <button class="refresh-btn" onclick="loadContent()">&#8634; Actualizar</button>
+    <div class="footer-text">M17LIV3 &middot; Actualizado diariamente</div>
   </div>
 </main>
-
 <script>
-var BIN_ID = '6a2d8241da38895dfebaae93';
-var ACCESS_KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
-
-function setDate() {
-  var d = new Date();
-  var days = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
-  var months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  document.getElementById('today-date').textContent =
-    days[d.getDay()] + ', ' + d.getDate() + ' de ' + months[d.getMonth()] + ' de ' + d.getFullYear();
+var BIN_ID='6a330946da38895dfed2f865';
+var API_KEY='$2a$10$DBMN2Up6v/HUybXjp/YGC.hvwYAALoeYP3wCWoTO9I9pvQzA8V4Oi';
+function setDate(){
+  var d=new Date();
+  var days=['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
+  var months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('today-date').textContent=days[d.getDay()]+', '+d.getDate()+' de '+months[d.getMonth()]+' de '+d.getFullYear();
 }
-
-function setLastUpdate() {
-  var now = new Date();
-  var h = String(now.getHours()).padStart(2,'0');
-  var m = String(now.getMinutes()).padStart(2,'0');
-  document.getElementById('last-update').textContent = 'Ultima actualizacion: ' + h + ':' + m;
-}
-
-async function loadContent() {
-  var el = document.getElementById('content-display');
-  try {
-    var res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
-      headers: { 'X-Master-Key': ACCESS_KEY, 'X-Access-Key': ACCESS_KEY }
-    });
-    var data = await res.json();
-    var record = data.record || {};
-    var texto = record.texto || '';
-
-    if (texto.trim()) {
-      el.className = 'content-area';
-      el.textContent = texto;
-    } else {
-      el.className = 'content-area empty';
-      el.textContent = 'Hoy todavia no se ha publicado la cartelera.\nVuelve mas tarde.';
-    }
-
-    var imagenDia = record.imagen_dia || '';
-    if (imagenDia) {
-      document.getElementById('evento-img').src = imagenDia;
-      document.getElementById('evento-wrap').className = 'evento-wrap visible';
-      document.getElementById('scroll-hint').className = 'scroll-hint visible';
-    } else {
-      document.getElementById('evento-wrap').className = 'evento-wrap';
-      document.getElementById('scroll-hint').className = 'scroll-hint';
-    }
-
-    setLastUpdate();
-
+async function loadContent(){
+  var el=document.getElementById('content-display');
+  el.className='content-area loading';
+  el.textContent='Cargando...';
+  try{
+    var res=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':API_KEY,'X-Access-Key':API_KEY}});
+    var data=await res.json();
+    var rec=data.record||{};
+    var texto=rec.texto||'';
+    if(texto.trim()){el.className='content-area';el.textContent=texto;}
+    else{el.className='content-area empty';el.textContent='Hoy todavia no hay cartelera publicada.\nVuelve mas tarde.';}
+    var img=rec.imagen_dia||'';
+    if(img){document.getElementById('evento-img').src=img;document.getElementById('evento-wrap').className='evento-wrap visible';}
+    else{document.getElementById('evento-wrap').className='evento-wrap';}
     // Registrar visita
-    var today = new Date().toISOString().slice(0,10);
-    var visits = record.visits || {};
-    visits[today] = (visits[today] || 0) + 1;
-    record.visits = visits;
-    fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': ACCESS_KEY, 'X-Access-Key': ACCESS_KEY },
-      body: JSON.stringify(record)
-    });
-
-  } catch(e) {
-    el.className = 'content-area empty';
-    el.textContent = 'No se pudo cargar la cartelera. Pulsa Actualizar.';
-  }
+    var today=new Date().toISOString().slice(0,10);
+    rec.visits=rec.visits||{};
+    rec.visits[today]=(rec.visits[today]||0)+1;
+    fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY,'X-Access-Key':API_KEY},body:JSON.stringify(rec)});
+  }catch(e){el.className='content-area empty';el.textContent='No se pudo cargar. Pulsa Actualizar.';}
 }
-
-function doRefresh() {
-  var btn = document.getElementById('refresh-btn');
-  btn.classList.add('spinning');
-  btn.querySelector('.icon').textContent = '&#8634;';
-  loadContent().finally(function() {
-    setTimeout(function() { btn.classList.remove('spinning'); }, 800);
-  });
-}
-
-// Auto refresco cada 5 minutos
 setDate();
 loadContent();
-
-
-document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+document.addEventListener('contextmenu',function(e){e.preventDefault();});
 </script>
 </body>
 </html>
