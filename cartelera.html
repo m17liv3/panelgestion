@@ -11,13 +11,17 @@ body{background:#0d0d14;color:#eeeef5;font-family:-apple-system,BlinkMacSystemFo
 .header img{height:56px;margin-bottom:8px;}
 .header h1{font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#00e5ff;font-weight:600;}
 .container{width:100%;max-width:600px;padding:24px 16px 40px;}
-.fecha-card{border-radius:16px;overflow:hidden;margin-bottom:20px;background:linear-gradient(135deg,rgba(105,255,71,0.08),rgba(0,229,255,0.06));border:1px solid rgba(105,255,71,0.35);}
-.fecha-label{padding:10px 16px;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#69ff47;border-bottom:1px solid rgba(105,255,71,0.2);background:rgba(105,255,71,0.05);}
-.fecha-body{padding:14px 16px;font-size:14px;font-weight:700;letter-spacing:1px;text-align:center;color:#69ff47;}
+
+/* Evento card (azul) */
 .evento-card{border-radius:16px;overflow:hidden;margin-bottom:20px;background:linear-gradient(135deg,rgba(0,229,255,0.08),rgba(105,255,71,0.05));border:1px solid rgba(0,229,255,0.25);}
 .evento-label{padding:10px 16px;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#00e5ff;border-bottom:1px solid rgba(0,229,255,0.15);background:rgba(0,229,255,0.05);}
 .evento-card img{width:100%;display:block;max-height:320px;object-fit:cover;}
-.texto-card{background:#16161f;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:20px;line-height:1.7;font-size:15px;white-space:pre-wrap;word-break:break-word;}
+
+/* Cartelera card (verde) - fecha + texto dentro */
+.cartelera-card{border-radius:16px;overflow:hidden;margin-bottom:20px;background:linear-gradient(135deg,rgba(105,255,71,0.08),rgba(0,229,255,0.06));border:1px solid rgba(105,255,71,0.35);}
+.cartelera-fecha{padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:2px;text-align:center;color:#69ff47;border-bottom:1px solid rgba(105,255,71,0.2);background:rgba(105,255,71,0.05);}
+.cartelera-texto{padding:18px 16px;font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:#eeeef5;}
+
 .empty{text-align:center;padding:60px 20px;color:rgba(238,238,245,0.3);font-size:14px;}
 .empty span{font-size:48px;display:block;margin-bottom:12px;}
 .loading{text-align:center;padding:80px 20px;color:rgba(0,229,255,0.5);font-size:13px;}
@@ -32,12 +36,6 @@ body{background:#0d0d14;color:#eeeef5;font-family:-apple-system,BlinkMacSystemFo
   <h1>Cartelera del d&iacute;a</h1>
 </div>
 <div class="container">
-
-  <div class="fecha-card">
-    <div class="fecha-label">&#128197; Hoy es &#127774;</div>
-    <div class="fecha-body" id="fhoy">...</div>
-  </div>
-
   <div id="content"><div class="loading">&#9203; Cargando...</div></div>
   <button class="refresh-btn" onclick="loadData()">&#8635; Actualizar</button>
 </div>
@@ -49,20 +47,14 @@ var KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
 var dias = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
 var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var now = new Date();
-var fechaTxt = dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' ' + now.getFullYear();
-document.getElementById('fhoy').textContent = fechaTxt;
+var fechaTxt = '\u{1F4C5} ' + dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' ' + now.getFullYear() + ' \u2600\uFE0F';
 
 async function loadData() {
   var el = document.getElementById('content');
   el.innerHTML = '<div class="loading">&#9203; Cargando...</div>';
   try {
-    var url = 'https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest';
-    var res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-Master-Key': KEY,
-        'X-Access-Key': KEY
-      }
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': KEY, 'X-Access-Key': KEY }
     });
     var txt = await res.text();
     if (!res.ok) {
@@ -73,18 +65,30 @@ async function loadData() {
     var rec = data.record || {};
     var texto = (rec.texto || '').trim();
     var imgUrl = (rec.imagen_dia || '').trim();
-    if (!texto && !imgUrl) {
-      el.innerHTML = '<div class="empty"><span>&#128203;</span>No hay contenido publicado a&uacute;n</div>';
-      return;
-    }
+
     var h = '';
+
+    // 1) EVENTO (imagen) - siempre primero si existe
     if (imgUrl) {
-      h += '<div class="evento-card"><div class="evento-label">&#11088; Evento exclusivo del d&iacute;a &#11088;</div><img src="' + imgUrl + '" alt="Evento"/></div>';
+      h += '<div class="evento-card">';
+      h += '<div class="evento-label">&#11088; Evento exclusivo del d&iacute;a &#11088;</div>';
+      h += '<img src="' + imgUrl + '" alt="Evento"/>';
+      h += '</div>';
     }
+
+    // 2) CARTELERA card verde - fecha arriba, texto dentro
+    h += '<div class="cartelera-card">';
+    h += '<div class="cartelera-fecha">' + fechaTxt + '</div>';
     if (texto) {
-      h += '<div class="texto-card">' + texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
+      h += '<div class="cartelera-texto">' + texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
+    } else {
+      h += '<div class="cartelera-texto" style="color:rgba(238,238,245,0.3);text-align:center;padding:30px 16px;">No hay contenido publicado a&uacute;n</div>';
     }
+    h += '</div>';
+
     el.innerHTML = h;
+
+    // Registrar visita
     try {
       var today = new Date().toISOString().slice(0,10);
       var visits = rec.visits || {};
@@ -95,8 +99,9 @@ async function loadData() {
         body: JSON.stringify(Object.assign({}, rec, {visits: visits}))
       });
     } catch(e) {}
+
   } catch(e) {
-    el.innerHTML = '<div class="error-box">Error de red: ' + e.message + '</div>';
+    el.innerHTML = '<div class="error-box">Error: ' + e.message + '</div>';
   }
 }
 loadData();
