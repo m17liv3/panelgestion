@@ -288,6 +288,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, 'S
   <div class="sheet-body">
     <div class="menuItem" onclick="exportExcel()"><span class="ico2">&#11015;</span> Exportar a Excel</div>
     <div class="menuItem" onclick="document.getElementById('importInput').click()"><span class="ico2">&#11014;</span> Importar desde Excel</div>
+    <div class="menuItem" onclick="openCartelera()"><span class="ico2">&#128249;</span> Cartelera del dia</div>
     <div class="menuItem" onclick="doLogout()"><span class="ico2">&#128682;</span> Cerrar sesion</div>
     <input type="file" id="importInput" accept=".xlsx,.xls" onchange="importExcel(event)"/>
   </div>
@@ -896,6 +897,216 @@ function importExcel(event) {
 }
 
 renderCards();
+
+// ========== CARTELERA ADMIN ==========
+var CART_BIN_ID = '6a2d8241da38895dfebaae93';
+var CART_KEY = '$2a$10$9ikO.ZJ.tHgDUL0ddUaO.eNMFAT5S6FGO.Ub6rJKwpIsE/Mr/L2xG';
+var CART_IMGBB_KEY = '8cb8483f3601ee9ae19b976b9f63d1fa';
+
+function openCartelera() {
+  closeSheet('menuSheet','menuOverlay');
+  var base = window.location.href.replace('index.html','').split('?')[0];
+  if (!base.endsWith('/')) base += '/';
+  document.getElementById('clienteLinkBox').textContent = base + 'cartelera.html';
+  cartLoadExisting();
+  var sheet = document.getElementById('carteleraSheet');
+  var overlay = document.getElementById('carteleraOverlay');
+  if (sheet) { sheet.classList.add('open'); }
+  if (overlay) { overlay.classList.add('open'); }
+}
+
+function copyClienteLink() {
+  var link = document.getElementById('clienteLinkBox').textContent;
+  navigator.clipboard.writeText(link).then(function() {
+    showToast('Enlace copiado!');
+  }).catch(function() { showToast('No se pudo copiar','error'); });
+}
+
+async function cartLoadExisting() {
+  try {
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
+    });
+    if (!res.ok) return;
+    var data = await res.json();
+    var record = data.record || {};
+    var texto = record.texto || '';
+    document.getElementById('cart-texto').value = texto;
+    document.getElementById('cart-char-count').textContent = texto.length + ' caracteres';
+    var imgUrl = record.imagen_dia || '';
+    if (imgUrl) {
+      document.getElementById('cart-img-link').textContent = imgUrl;
+      document.getElementById('cart-imgbb-result').style.display = 'block';
+      document.getElementById('cart-preview-img').src = imgUrl;
+    } else {
+      document.getElementById('cart-imgbb-result').style.display = 'none';
+    }
+    var today = new Date().toISOString().slice(0,10);
+    var visits = record.visits || {};
+    document.getElementById('cart-visits-today').textContent = visits[today] || 0;
+    var total = Object.values(visits).reduce(function(a,b){ return a+b; }, 0);
+    document.getElementById('cart-visits-total').textContent = total;
+  } catch(e) {}
+}
+
+async function cartSave() {
+  var btn = document.getElementById('cart-save-btn');
+  var texto = document.getElementById('cart-texto').value;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try {
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
+    });
+    var data = await res.json();
+    var record = data.record || {};
+    record.texto = texto;
+    var saveRes = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY },
+      body: JSON.stringify(record)
+    });
+    if (saveRes.ok) { showToast('Cartelera publicada!'); }
+    else { showToast('Error al guardar','error'); }
+  } catch(e) { showToast('Error de red','error'); }
+  btn.disabled = false;
+  btn.textContent = 'Guardar y publicar';
+}
+
+async function cartClear() {
+  if (!confirm('Borrar toda la cartelera?')) return;
+  document.getElementById('cart-texto').value = '';
+  document.getElementById('cart-char-count').textContent = '0 caracteres';
+  await cartSave();
+}
+
+async function cartUploadImage() {
+  var fileInput = document.getElementById('cart-img-file');
+  var file = fileInput.files[0];
+  if (!file) { showToast('Selecciona una imagen primero','error'); return; }
+  var btn = document.getElementById('cart-upload-btn');
+  btn.disabled = true;
+  btn.textContent = 'Subiendo...';
+  try {
+    var formData = new FormData();
+    formData.append('image', file);
+    var res = await fetch('https://api.imgbb.com/1/upload?key=' + CART_IMGBB_KEY, { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.success) {
+      var url = data.data.url;
+      document.getElementById('cart-img-link').textContent = url;
+      document.getElementById('cart-imgbb-result').style.display = 'block';
+      document.getElementById('cart-preview-img').src = url;
+      var r2 = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
+        headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
+      });
+      var d2 = await r2.json();
+      var rec2 = d2.record || {};
+      rec2.imagen_dia = url;
+      await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY },
+        body: JSON.stringify(rec2)
+      });
+      showToast('Imagen publicada como evento!');
+    } else { throw new Error(); }
+  } catch(e) { showToast('Error al subir imagen','error'); }
+  btn.disabled = false;
+  btn.textContent = 'Subir';
+}
+
+async function cartRemoveImage() {
+  if (!confirm('Quitar la imagen del evento?')) return;
+  try {
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
+    });
+    var data = await res.json();
+    var record = data.record || {};
+    delete record.imagen_dia;
+    await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY },
+      body: JSON.stringify(record)
+    });
+    document.getElementById('cart-imgbb-result').style.display = 'none';
+    document.getElementById('cart-img-file').value = '';
+    showToast('Imagen del evento eliminada');
+  } catch(e) { showToast('Error al eliminar imagen','error'); }
+}
+
+async function cartResetVisits() {
+  if (!confirm('Resetear el contador de visitas de hoy?')) return;
+  try {
+    var res = await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY }
+    });
+    var data = await res.json();
+    var record = data.record || {};
+    var today = new Date().toISOString().slice(0,10);
+    if (record.visits) delete record.visits[today];
+    await fetch('https://api.jsonbin.io/v3/b/' + CART_BIN_ID, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CART_KEY, 'X-Access-Key': CART_KEY },
+      body: JSON.stringify(record)
+    });
+    document.getElementById('cart-visits-today').textContent = '0';
+    var total = Object.values(record.visits || {}).reduce(function(a,b){ return a+b; }, 0);
+    document.getElementById('cart-visits-total').textContent = total;
+    showToast('Contador reseteado');
+  } catch(e) { showToast('Error al resetear','error'); }
+}
+// ========== FIN CARTELERA ADMIN ==========
+
 </script>
+
+<!-- CARTELERA SHEET -->
+<div class="sheet-overlay" id="carteleraOverlay" onclick="closeSheet('carteleraSheet','carteleraOverlay')"></div>
+<div class="sheet" id="carteleraSheet" style="max-height:92vh;overflow-y:auto;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h3>&#128249; Cartelera del dia</h3>
+    <button class="sheet-close" onclick="closeSheet('carteleraSheet','carteleraOverlay')">x</button>
+  </div>
+  <div class="sheet-body" style="padding-bottom:30px;">
+    <div style="background:rgba(57,255,20,0.07);border:1px solid rgba(57,255,20,0.25);border-radius:12px;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7AA3C8;margin-bottom:8px;">&#128279; Enlace para tus clientes</div>
+      <div id="clienteLinkBox" style="font-size:13px;color:#00D4FF;word-break:break-all;padding:8px 12px;background:rgba(0,0,0,0.3);border-radius:8px;cursor:pointer;border:1px solid rgba(0,212,255,0.2);">Cargando...</div>
+      <button onclick="copyClienteLink()" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#0099CC,#00D4FF);color:#001822;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">&#128203; Copiar enlace de clientes</button>
+    </div>
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7AA3C8;margin-bottom:10px;">&#128247; Imagen del dia (ImgBB)</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+      <input type="file" id="cart-img-file" accept="image/*" style="flex:1;min-width:0;background:rgba(255,255,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:10px;color:#E8F4FF;font-size:13px;padding:8px 10px;cursor:pointer;">
+      <button onclick="cartUploadImage()" id="cart-upload-btn" style="padding:10px 16px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.3);color:#39FF14;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">&#8593; Subir</button>
+    </div>
+    <div id="cart-imgbb-result" style="display:none;margin-bottom:16px;">
+      <div style="font-size:12px;color:#7AA3C8;margin-bottom:6px;">Link de la imagen:</div>
+      <div id="cart-img-link" style="font-size:12px;color:#00D4FF;word-break:break-all;padding:8px 10px;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(0,212,255,0.2);"></div>
+      <img id="cart-preview-img" src="" alt="Preview" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid rgba(0,212,255,0.15);display:block;margin-top:10px;object-fit:contain;">
+      <button onclick="cartRemoveImage()" style="margin-top:8px;width:100%;padding:8px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:#FF4757;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">&#128465; Quitar imagen del evento</button>
+    </div>
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7AA3C8;margin-bottom:10px;">&#128221; Cartelera del dia</div>
+    <textarea id="cart-texto" placeholder="Escribe aqui la cartelera..." style="width:100%;min-height:200px;background:rgba(255,255,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:10px;color:#E8F4FF;font-family:inherit;font-size:14px;line-height:1.7;padding:12px 14px;resize:vertical;outline:none;" oninput="document.getElementById('cart-char-count').textContent=this.value.length+' caracteres'"></textarea>
+    <div id="cart-char-count" style="font-size:11px;color:#7AA3C8;text-align:right;margin-top:4px;">0 caracteres</div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+      <button onclick="cartSave()" id="cart-save-btn" style="flex:1;padding:12px;background:linear-gradient(135deg,#0099CC,#00D4FF);color:#001822;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">&#128190; Guardar y publicar</button>
+      <button onclick="cartLoadExisting()" style="padding:12px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#E8F4FF;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">&#8634; Recargar</button>
+    </div>
+    <button onclick="cartClear()" style="margin-top:8px;width:100%;padding:10px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:#FF4757;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;">&#128465; Borrar cartelera</button>
+    <div style="margin-top:24px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7AA3C8;margin-bottom:12px;">&#128202; Visitas a la cartelera</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(0,212,255,0.12);border-radius:12px;padding:16px;text-align:center;">
+        <div id="cart-visits-today" style="font-size:36px;font-weight:700;font-family:'Rajdhani',sans-serif;background:linear-gradient(135deg,#00D4FF,#39FF14);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">-</div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7AA3C8;margin-top:4px;">Hoy</div>
+      </div>
+      <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(0,212,255,0.12);border-radius:12px;padding:16px;text-align:center;">
+        <div id="cart-visits-total" style="font-size:36px;font-weight:700;font-family:'Rajdhani',sans-serif;background:linear-gradient(135deg,#00D4FF,#39FF14);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">-</div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7AA3C8;margin-top:4px;">Total</div>
+      </div>
+    </div>
+    <button onclick="cartResetVisits()" style="margin-top:10px;background:none;border:none;color:rgba(255,71,87,0.5);font-size:11px;cursor:pointer;width:100%;text-align:right;">&#128465; Resetear contador de hoy</button>
+  </div>
+</div>
+
 </body>
 </html>
