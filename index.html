@@ -531,7 +531,7 @@ function quickFilter(st) {
     bar.style.display = 'none';
   } else {
     bar.style.display = 'flex';
-    if (st === 'ok') lbl.textContent = 'Mostrando: Activos';
+    if (st === 'ok') lbl.textContent = 'Mostrando: Clientes activos';
     if (st === 'warn') lbl.textContent = 'Mostrando: Expiran pronto (menos de 7 dias)';
     if (st === 'exp') lbl.textContent = 'Mostrando: Expirados';
   }
@@ -576,7 +576,7 @@ function renderCards() {
   var filtered = clients.filter(function(c) {
     var ms = !search || c.name.toLowerCase().indexOf(search)>=0 || (c.user||'').toLowerCase().indexOf(search)>=0;
     var mv = !filterSvc || c.service===filterSvc;
-    var mt = !filterSt || getStatus(c.expiry)===filterSt;
+    var mt = !filterSt || (filterSt==='ok' ? (getStatus(c.expiry)==='ok'||getStatus(c.expiry)==='warn') : getStatus(c.expiry)===filterSt);
     return ms && mv && mt;
   });
   var container = document.getElementById('cardsContainer');
