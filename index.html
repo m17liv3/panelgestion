@@ -541,7 +541,7 @@ function quickFilter(st) {
 
 function updateStats() {
   document.getElementById('stTotal').textContent = clients.length;
-  document.getElementById('stActive').textContent = clients.filter(function(c){ return getStatus(c.expiry)==='ok'; }).length;
+  document.getElementById('stActive').textContent = clients.filter(function(c){ var s=getStatus(c.expiry); return s==='ok'||s==='warn'; }).length;
   document.getElementById('stSoon').textContent = clients.filter(function(c){ return getStatus(c.expiry)==='warn'; }).length;
   document.getElementById('stExp').textContent = clients.filter(function(c){ return getStatus(c.expiry)==='exp'; }).length;
 }
