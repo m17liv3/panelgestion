@@ -1144,11 +1144,6 @@ const TMDB_KEY = "6b8e3eaa1a03ebb45642e9531d8a76d2";
 const ctx = canvas.getContext('2d');
 //WH->pltW pltH
 
-let pltState = {
-  title:"TÍTULO DE LA PELÍCULA",genre:"GÉNERO",rating:"0.0",duration:"00",
-  synopsis:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-  posterUrl:"",logoDataUrl:null,posterZoom:100,posterOffsetX:0,posterOffsetY:0
-};
 let pltPosterImg=null,pltLogoImg=null;
 
 function plt_loadImage(src,crossOrigin=true){
@@ -1269,7 +1264,7 @@ function plt_drawPoster(){
 function plt_drawTextContent(){
   const leftX=590;
   pltCtx.fillStyle="#f5f7fa";pltCtx.font="900 62px Arial,sans-serif";pltCtx.textBaseline="alphabetic";
-  pltCtx.fillText("PELÍCULA",leftX,95);
+  pltCtx.fillText("PELICULA",leftX,95);
   let grad=pltCtx.createLinearGradient(leftX,0,leftX+800,0);
   grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
   pltCtx.fillStyle=grad;pltCtx.font="900 62px Arial,sans-serif";pltCtx.fillText("RECOMENDADA",leftX,170);
@@ -1279,11 +1274,11 @@ function plt_drawTextContent(){
   pltCtx.beginPath();pltCtx.moveTo(lineStartX,lineY);pltCtx.lineTo(pltW-90,lineY);pltCtx.stroke();
   pltCtx.beginPath();pltCtx.fillStyle="#69ff47";pltCtx.arc(pltW-90,lineY,7,0,Math.PI*2);pltCtx.fill();
   pltCtx.fillStyle="#f5f7fa";pltCtx.font="900 52px Arial,sans-serif";
-  const titleText=(pltState.title||"TÍTULO DE LA PELÍCULA").toUpperCase();
-  let titleLines=plt_wrapText(ctx,titleText,leftX,320,pltW-leftX-90,60,2);
+  const titleText=(pltState.title||"TITULO DE LA PELICULA").toUpperCase();
+  let titleLines=plt_wrapText(pltCtx,titleText,leftX,320,pltW-leftX-90,60,2);
   let yCursor=320+(titleLines>1?60:0)+65;
   pltCtx.font="700 26px Arial,sans-serif";
-  const genreText=(pltState.genre||"GÉNERO").toUpperCase();
+  const genreText=(pltState.genre||"GENERO").toUpperCase();
   const padX=26,pillH=50,textW=pltCtx.measureText(genreText).width,pillW=textW+padX*2;
   plt_roundRect(ctx,leftX,yCursor-pillH+10,pillW,pillH,pillH/2);
   pltCtx.strokeStyle="#69ff47";pltCtx.lineWidth=2;pltCtx.stroke();
