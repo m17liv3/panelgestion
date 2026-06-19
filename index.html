@@ -290,7 +290,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, 'S
     <div class="menuItem" onclick="exportExcel()"><span class="ico2">&#11015;</span> Exportar a Excel</div>
     <div class="menuItem" onclick="document.getElementById('importInput').click()"><span class="ico2">&#11014;</span> Importar desde Excel</div>
     <div class="menuItem" onclick="openCartelera()"><span class="ico2">&#128249;</span> Cartelera del dia</div>
-    <div class="menuItem" onclick="window.location.href='plantillas.html'"><span class="ico2">&#127916;</span> Plantillas Películas</div>
+    <div class="menuItem" onclick="openPlantillas()"><span class="ico2">&#127916;</span> Plantillas Películas</div>
     <div class="menuItem" onclick="doLogout()"><span class="ico2">&#128682;</span> Cerrar sesion</div>
     <input type="file" id="importInput" accept=".xlsx,.xls" onchange="importExcel(event)"/>
   </div>
@@ -1114,6 +1114,419 @@ async function cartResetVisits() {
 }
 // ========== FIN CARTELERA ADMIN ==========
 
+
+// === PLANTILLAS ===
+
+var pltInitialized=false,pltCanvas,pltCtx,pltW,pltH,pltLogoImg=null,pltPosterImg=null,pltDebounceTimer=null;
+var pltState={title:"TITULO DE LA PELICULA",genre:"GENERO",rating:"0.0",duration:"00",synopsis:"Sinopsis de la pelicula...",posterUrl:"",logoDataUrl:null,posterZoom:100,posterOffsetX:0,posterOffsetY:0};
+
+function pltInit(){
+  if(pltInitialized){plt_draw();return;}
+  pltCanvas=document.getElementById('plt_canvas');
+  pltCtx=pltCanvas.getContext('2d');
+  pltW=pltCanvas.width; pltH=pltCanvas.height;
+  pltInitialized=true;
+  plt_restoreLogo(); plt_draw(); pltBindEvents();
+}
+
+function openPlantillas(){
+  closeSheet('menuSheet','menuOverlay');
+  var s=document.getElementById('pltSheet'), o=document.getElementById('pltOverlay');
+  if(s) s.classList.add('open');
+  if(o) o.classList.add('open');
+  setTimeout(pltInit,150);
+}
+
+
+const TMDB_KEY = "6b8e3eaa1a03ebb45642e9531d8a76d2";
+
+//canvas->pltCanvas;
+const ctx = canvas.getContext('2d');
+//WH->pltW pltH
+
+let pltState = {
+  title:"TÍTULO DE LA PELÍCULA",genre:"GÉNERO",rating:"0.0",duration:"00",
+  synopsis:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+  posterUrl:"",logoDataUrl:null,posterZoom:100,posterOffsetX:0,posterOffsetY:0
+};
+let pltPosterImg=null,pltLogoImg=null;
+
+function plt_loadImage(src,crossOrigin=true){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    if(crossOrigin)img.crossOrigin="anonymous";
+    img.onload=()=>resolve(img);
+    img.onerror=(e)=>reject(e);
+    img.src=src;
+  });
+}
+
+function plt_wrapText(ctx,text,x,y,maxWidth,lineHeight,maxLines){
+  const words=text.split(/\s+/);let line='',lines=[];
+  for(let n=0;n<words.length;n++){
+    const testLine=line+words[n]+' ';
+    if(pltCtx.measureText(testLine).width>maxWidth&&n>0){lines.push(line.trim());line=words[n]+' ';}
+    else line=testLine;
+  }
+  lines.push(line.trim());
+  if(maxLines&&lines.length>maxLines){
+    lines=lines.slice(0,maxLines);
+    let last=lines[maxLines-1];
+    while(pltCtx.measureText(last+'...').width>maxWidth&&last.length>0)last=last.slice(0,-1);
+    lines[maxLines-1]=last.trim()+'...';
+  }
+  lines.forEach((l,i)=>pltCtx.fillText(l,x,y+i*lineHeight));
+  return lines.length;
+}
+
+function plt_roundRect(ctx,x,y,w,h,r){
+  pltCtx.beginPath();
+  pltCtx.moveTo(x+r,y);pltCtx.arcTo(x+w,y,x+w,y+h,r);pltCtx.arcTo(x+w,y+h,x,y+h,r);
+  pltCtx.arcTo(x,y+h,x,y,r);pltCtx.arcTo(x,y,x+w,y,r);pltCtx.closePath();
+}
+
+function plt_draw(){
+  pltCtx.fillStyle="#070b14";pltCtx.fillRect(0,0,pltW,pltH);
+  let g1=pltCtx.createRadialGradient(150,100,50,150,100,500);
+  g1.addColorStop(0,"rgba(0,229,255,0.09)");g1.addColorStop(1,"rgba(0,229,255,0)");
+  pltCtx.fillStyle=g1;pltCtx.fillRect(0,0,pltW,pltH);
+  let g2=pltCtx.createRadialGradient(pltW-150,pltH-100,50,pltW-150,pltH-100,600);
+  g2.addColorStop(0,"rgba(105,255,71,0.06)");g2.addColorStop(1,"rgba(105,255,71,0)");
+  pltCtx.fillStyle=g2;pltCtx.fillRect(0,0,pltW,pltH);
+  plt_drawDots(pltW-340,30,280,220);plt_drawDots(0,pltH-240,100,240);
+  plt_drawLogo();plt_drawPoster();plt_drawTextContent();plt_drawNeonFrame();
+}
+
+function plt_drawNeonFrame(){
+  pltCtx.save();const m=6;
+  let grad=pltCtx.createLinearGradient(0,0,pltW,pltH);
+  grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
+  pltCtx.strokeStyle=grad;pltCtx.lineWidth=4;
+  pltCtx.shadowColor="rgba(0,229,255,0.6)";pltCtx.shadowBlur=18;
+  plt_roundRect(ctx,m,m,pltW-m*2,pltH-m*2,18);pltCtx.stroke();
+  pltCtx.shadowBlur=0;pltCtx.restore();
+}
+
+function plt_drawDots(x0,y0,w,h){
+  pltCtx.save();pltCtx.fillStyle="rgba(0,229,255,0.22)";const gap=22;
+  for(let x=x0;x<x0+w;x+=gap)for(let y=y0;y<y0+h;y+=gap){
+    pltCtx.beginPath();pltCtx.arc(x,y,1.6,0,Math.PI*2);pltCtx.fill();
+  }
+  pltCtx.restore();
+}
+
+function plt_drawLogo(){
+  const posterX=45,posterW=580*(2/3);
+  const areaW=320,areaH=230,areaX=posterX+(posterW-areaW)/2,areaY=25;
+  if(pltLogoImg){
+    const iw=pltLogoImg.width,ih=pltLogoImg.height,scale=Math.min(areaW/iw,areaH/ih);
+    const dw=iw*scale,dh=ih*scale,dx=areaX+(areaW-dw)/2,dy=areaY+(areaH-dh)/2;
+    pltCtx.drawImage(pltLogoImg,dx,dy,dw,dh);
+  } else {
+    pltCtx.save();pltCtx.strokeStyle="rgba(255,255,255,0.12)";pltCtx.lineWidth=2;pltCtx.setLineDash([8,8]);
+    plt_roundRect(ctx,areaX,areaY,areaW,areaH,14);pltCtx.stroke();pltCtx.setLineDash([]);
+    pltCtx.fillStyle="rgba(255,255,255,0.2)";pltCtx.font="600 22px Arial,sans-serif";
+    pltCtx.textAlign="center";pltCtx.textBaseline="middle";
+    pltCtx.fillText("TU LOGO",areaX+areaW/2,areaY+areaH/2);
+    pltCtx.textAlign="left";pltCtx.textBaseline="alphabetic";pltCtx.restore();
+  }
+}
+
+function plt_drawPoster(){
+  const h=580,w=h*(2/3),x=45,y=280,r=22;
+  pltCtx.save();plt_roundRect(ctx,x,y,w,h,r);
+  let grad=pltCtx.createLinearGradient(x,y,x+w,y+h);
+  grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
+  pltCtx.strokeStyle=grad;pltCtx.lineWidth=4;pltCtx.shadowColor="rgba(0,229,255,0.5)";pltCtx.shadowBlur=20;
+  pltCtx.stroke();pltCtx.shadowBlur=0;pltCtx.restore();
+  pltCtx.save();plt_roundRect(ctx,x+2,y+2,w-4,h-4,r-2);pltCtx.clip();
+  if(pltPosterImg){
+    pltCtx.fillStyle="#0d1422";pltCtx.fillRect(x+2,y+2,w-4,h-4);
+    const ir=pltPosterImg.width/pltPosterImg.height,tr=(w-4)/(h-4);
+    let sw,sh;
+    if(ir>tr){sh=pltPosterImg.height;sw=sh*tr;}else{sw=pltPosterImg.width;sh=sw/tr;}
+    const zoom=(pltState.posterZoom||100)/100;sw=sw/zoom;sh=sh/zoom;
+    let dw=w-4,dh=h-4;
+    if(sw>pltPosterImg.width){const ratio=pltPosterImg.width/sw;sw=pltPosterImg.width;dw=(w-4)*ratio;}
+    if(sh>pltPosterImg.height){const ratio=pltPosterImg.height/sh;sh=pltPosterImg.height;dh=(h-4)*ratio;}
+    const maxOffX=pltPosterImg.width-sw,maxOffY=pltPosterImg.height-sh;
+    let sx=(pltPosterImg.width-sw)/2,sy=(pltPosterImg.height-sh)/2;
+    sx+=(pltState.posterOffsetX||0)/100*(maxOffX/2);sy+=(pltState.posterOffsetY||0)/100*(maxOffY/2);
+    sx=Math.max(0,Math.min(maxOffX,sx));sy=Math.max(0,Math.min(maxOffY,sy));
+    const dx=x+2+((w-4)-dw)/2,dy=y+2+((h-4)-dh)/2;
+    pltCtx.drawImage(pltPosterImg,sx,sy,sw,sh,dx,dy,dw,dh);
+  } else {
+    pltCtx.fillStyle="#0d1422";pltCtx.fillRect(x+2,y+2,w-4,h-4);
+    pltCtx.strokeStyle="#3a4a66";pltCtx.lineWidth=4;
+    const ix=x+w/2-65,iy=y+h/2-130,isz=130;
+    plt_roundRect(ctx,ix,iy,isz,isz,14);pltCtx.stroke();
+    pltCtx.fillStyle="#5a6a85";pltCtx.font="700 36px Arial,sans-serif";
+    pltCtx.textAlign="center";pltCtx.fillText("PORTADA",x+w/2,y+h/2+90);pltCtx.textAlign="left";
+  }
+  pltCtx.restore();
+}
+
+function plt_drawTextContent(){
+  const leftX=590;
+  pltCtx.fillStyle="#f5f7fa";pltCtx.font="900 62px Arial,sans-serif";pltCtx.textBaseline="alphabetic";
+  pltCtx.fillText("PELÍCULA",leftX,95);
+  let grad=pltCtx.createLinearGradient(leftX,0,leftX+800,0);
+  grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
+  pltCtx.fillStyle=grad;pltCtx.font="900 62px Arial,sans-serif";pltCtx.fillText("RECOMENDADA",leftX,170);
+  pltCtx.fillStyle="#69ff47";pltCtx.font="700 34px Arial,sans-serif";pltCtx.fillText("de la semana",leftX,225);
+  const lineY=213,lineStartX=leftX+380;
+  pltCtx.strokeStyle="#69ff47";pltCtx.lineWidth=3;
+  pltCtx.beginPath();pltCtx.moveTo(lineStartX,lineY);pltCtx.lineTo(pltW-90,lineY);pltCtx.stroke();
+  pltCtx.beginPath();pltCtx.fillStyle="#69ff47";pltCtx.arc(pltW-90,lineY,7,0,Math.PI*2);pltCtx.fill();
+  pltCtx.fillStyle="#f5f7fa";pltCtx.font="900 52px Arial,sans-serif";
+  const titleText=(pltState.title||"TÍTULO DE LA PELÍCULA").toUpperCase();
+  let titleLines=plt_wrapText(ctx,titleText,leftX,320,pltW-leftX-90,60,2);
+  let yCursor=320+(titleLines>1?60:0)+65;
+  pltCtx.font="700 26px Arial,sans-serif";
+  const genreText=(pltState.genre||"GÉNERO").toUpperCase();
+  const padX=26,pillH=50,textW=pltCtx.measureText(genreText).width,pillW=textW+padX*2;
+  plt_roundRect(ctx,leftX,yCursor-pillH+10,pillW,pillH,pillH/2);
+  pltCtx.strokeStyle="#69ff47";pltCtx.lineWidth=2;pltCtx.stroke();
+  pltCtx.fillStyle="#69ff47";pltCtx.textBaseline="middle";
+  pltCtx.fillText(genreText,leftX+padX,yCursor-pillH/2+10);pltCtx.textBaseline="alphabetic";
+  yCursor+=75;
+  plt_drawStar(leftX+18,yCursor-10,22,"#69ff47");
+  pltCtx.fillStyle="#f5f7fa";pltCtx.font="600 30px Arial,sans-serif";
+  const ratingVal=parseFloat(pltState.rating);
+  const ratingStr=(isNaN(ratingVal)?"0.0":ratingVal.toFixed(1))+"/10";
+  pltCtx.fillText(ratingStr,leftX+50,yCursor);
+  pltCtx.strokeStyle="#3a4a66";pltCtx.lineWidth=2;
+  const sepX=leftX+50+pltCtx.measureText(ratingStr).width+30;
+  pltCtx.beginPath();pltCtx.moveTo(sepX,yCursor-25);pltCtx.lineTo(sepX,yCursor+5);pltCtx.stroke();
+  plt_drawClock(sepX+35,yCursor-10,18,"#00e5ff");
+  pltCtx.fillStyle="#f5f7fa";pltCtx.font="600 30px Arial,sans-serif";
+  const durVal=parseInt(pltState.duration);
+  pltCtx.fillText((isNaN(durVal)?"00":durVal)+" min",sepX+65,yCursor);
+  yCursor+=50;
+  pltCtx.strokeStyle="rgba(255,255,255,0.12)";pltCtx.lineWidth=1;
+  pltCtx.beginPath();pltCtx.moveTo(leftX,yCursor);pltCtx.lineTo(pltW-90,yCursor);pltCtx.stroke();
+  yCursor+=55;
+  pltCtx.fillStyle="#00e5ff";pltCtx.font="800 32px Arial,sans-serif";pltCtx.fillText("SINOPSIS",leftX,yCursor);
+  yCursor+=45;
+  pltCtx.fillStyle="#e6e9ef";pltCtx.font="400 27px Arial,sans-serif";
+  plt_wrapText(ctx,pltState.synopsis||"",leftX,yCursor,pltW-leftX-90,40,7);
+}
+
+function plt_drawStar(cx,cy,r,color){
+  pltCtx.save();pltCtx.fillStyle=color;pltCtx.beginPath();
+  for(let i=0;i<5;i++){
+    const oa=-Math.PI/2+i*(2*Math.PI/5),ia=oa+Math.PI/5;
+    if(i===0)pltCtx.moveTo(cx+r*Math.cos(oa),cy+r*Math.sin(oa));
+    else pltCtx.lineTo(cx+r*Math.cos(oa),cy+r*Math.sin(oa));
+    pltCtx.lineTo(cx+r*0.45*Math.cos(ia),cy+r*0.45*Math.sin(ia));
+  }
+  pltCtx.closePath();pltCtx.fill();pltCtx.restore();
+}
+
+function plt_drawClock(cx,cy,r,color){
+  pltCtx.save();pltCtx.strokeStyle=color;pltCtx.lineWidth=2.5;
+  pltCtx.beginPath();pltCtx.arc(cx,cy,r,0,Math.PI*2);pltCtx.stroke();
+  pltCtx.beginPath();pltCtx.moveTo(cx,cy);pltCtx.lineTo(cx,cy-r*0.55);
+  pltCtx.moveTo(cx,cy);pltCtx.lineTo(cx+r*0.4,cy+r*0.2);pltCtx.stroke();pltCtx.restore();
+}
+
+/* TMDB */
+async function plt_searchMovies(q){
+  const res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&language=es-ES&query=${encodeURIComponent(q)}`);
+  if(!res.ok)throw new Error("Error TMDB "+res.status);
+  return (await res.json()).results||[];
+}
+async function plt_getMovieDetails(id){
+  const res=await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-ES`);
+  if(!res.ok)throw new Error("Error TMDB "+res.status);
+  return res.json();
+}
+async function plt_getMovieImages(id){
+  const res=await fetch(`https://api.themoviedb.org/3/movie/${id}/images?api_key=${TMDB_KEY}&include_image_language=es,en,null`);
+  if(!res.ok)throw new Error("Error TMDB "+res.status);
+  return (await res.json()).posters||[];
+}
+
+function plt_renderResults(results){
+  const box=document.getElementById('plt_searchResults');
+  box.innerHTML='';
+  if(!results.length){box.innerHTML='<p style="color:var(--muted);font-size:12px;">Sin resultados.</p>';return;}
+  results.slice(0,8).forEach(movie=>{
+    const item=document.createElement('div');item.className='result-item';
+    const src=movie.poster_path?`https://image.tmdb.org/t/p/w92${movie.poster_path}`:'';
+    const year=movie.release_date?movie.release_date.slice(0,4):'—';
+    item.innerHTML=`<img src="${src}" alt=""/><div class="meta"><div class="t">${movie.title}</div><div class="y">${year}</div></div>`;
+    item.addEventListener('click',()=>selectMovie(movie.id));
+    box.appendChild(item);
+  });
+}
+
+async function selectMovie(id){
+  plt_setStatus("Cargando datos...","");
+  try{
+    const d=await plt_getMovieDetails(id);
+    const year=d.release_date?d.release_date.slice(0,4):'';
+    document.getElementById('plt_title').value=d.title?(d.title+(year?' ('+year+')':'')):'';
+    document.getElementById('plt_genre').value=(d.genres||[]).map(g=>g.name).join(', ');
+    document.getElementById('plt_rating').value=d.vote_average?d.vote_average.toFixed(1):'0.0';
+    document.getElementById('plt_duration').value=d.runtime||0;
+    document.getElementById('plt_synopsis').value=d.overview||'';
+    const posterUrl=d.poster_path?`https://image.tmdb.org/t/p/w780${d.poster_path}`:'';
+    document.getElementById('plt_posterUrl').value=posterUrl;
+    await plt_syncStateFromInputs();
+    plt_setStatus("Datos cargados ✔","ok");
+    try{const posters=await plt_getMovieImages(id);plt_renderPosterGallery(posters,posterUrl);}catch(e){}
+  }catch(err){plt_setStatus("Error: "+err.message,"err");}
+}
+
+function plt_renderPosterGallery(posters,currentUrl){
+  const gallery=document.getElementById('plt_posterGallery');
+  const label=document.getElementById('plt_posterGalleryLabel');
+  gallery.innerHTML='';
+  if(!posters||!posters.length){label.style.display='none';return;}
+  label.style.display='block';
+  label.textContent=`Elegir otro póster (${posters.length} disponibles)`;
+  posters.forEach(poster=>{
+    const fullUrl=`https://image.tmdb.org/t/p/w780${poster.file_path}`;
+    const thumbUrl=`https://image.tmdb.org/t/p/w154${poster.file_path}`;
+    const thumb=document.createElement('div');thumb.className='poster-thumb';
+    if(fullUrl===currentUrl)thumb.classList.add('selected');
+    const img=document.createElement('img');img.src=thumbUrl;img.alt='';
+    thumb.appendChild(img);
+    thumb.addEventListener('click',async()=>{
+      document.querySelectorAll('.poster-thumb').forEach(el=>el.classList.remove('selected'));
+      thumb.classList.add('selected');
+      document.getElementById('plt_posterUrl').value=fullUrl;
+      await plt_syncStateFromInputs();
+    });
+    gallery.appendChild(thumb);
+  });
+}
+
+
+async function plt_doSearch(){
+  const q=document.getElementById('plt_searchInput').value.trim();if(!q)return;
+  plt_setStatus("Buscando...","");
+  try{plt_renderResults(await plt_searchMovies(q));plt_setStatus("");}
+  catch(err){plt_setStatus("Error: "+err.message,"err");}
+}
+
+let pltDebounceTimer=null;
+function plt_syncStateFromInputsDebounced(){clearTimeout(pltDebounceTimer);pltDebounceTimer=setTimeout(plt_syncStateFromInputs,250);}
+
+async function plt_syncStateFromInputs(){
+  pltState.title=document.getElementById('plt_title').value;
+  pltState.genre=document.getElementById('plt_genre').value;
+  pltState.rating=document.getElementById('plt_rating').value;
+  pltState.duration=document.getElementById('plt_duration').value;
+  pltState.synopsis=document.getElementById('plt_synopsis').value;
+  const newUrl=document.getElementById('plt_posterUrl').value.trim();
+  if(newUrl!==pltState.posterUrl){
+    pltState.posterUrl=newUrl;
+    if(newUrl){
+      try{pltPosterImg=await plt_loadImage(newUrl,true);}
+      catch(e){try{pltPosterImg=await plt_loadImage(newUrl,false);}catch(e2){pltPosterImg=null;}}
+    }else pltPosterImg=null;
+    plt_resetPosterAdjust();
+  }
+  plt_draw();
+}
+
+function plt_resetPosterAdjust(){
+  pltState.posterZoom=100;pltState.posterOffsetX=0;pltState.posterOffsetY=0;
+  document.getElementById('plt_posterZoomVal').textContent='100';
+}
+
+const LOGO_KEY='m17liv3_logo_dataurl';
+
+async function plt_restoreLogo(){
+  try{
+    const saved=localStorage.getItem(LOGO_KEY);
+    if(saved){
+      pltState.logoDataUrl=saved;pltLogoImg=await plt_loadImage(saved,false);
+      document.getElementById('plt_logoPreviewSmall').src=saved;
+      document.getElementById('plt_logoPreviewSmall').style.display='inline-block';
+      plt_draw();
+    }
+  }catch(err){}
+}
+
+function plt_setStatus(msg,cls){
+  const el=document.getElementById('plt_status');el.textContent=msg;
+  el.className='status'+(cls?' '+cls:'');
+}
+
+function plt_canvasToJpegBlob(){
+  return new Promise(resolve=>pltCanvas.toBlob(blob=>resolve(blob),'image/jpeg',0.92));
+}
+
+
+
+
+//called by pltInit
+
+
+function pltBindEvents(){
+  var fids=['plt_title','plt_genre','plt_rating','plt_duration','plt_synopsis','plt_posterUrl'];
+  fids.forEach(function(id){ var el=document.getElementById(id); if(el) el.addEventListener('input',plt_syncStateFromInputsDebounced); });
+  var sb=document.getElementById('plt_searchBtn'); if(sb) sb.addEventListener('click',plt_doSearch);
+  var si=document.getElementById('plt_searchInput'); if(si) si.addEventListener('keydown',function(e){if(e.key==='Enter')plt_doSearch();});
+  var pz=document.getElementById('plt_posterZoom');
+  if(pz) pz.addEventListener('input',function(){ pltState.posterZoom=parseFloat(this.value); var v=document.getElementById('plt_posterZoomVal'); if(v) v.textContent=this.value; plt_draw(); });
+  var px=document.getElementById('plt_posterOffsetX'); if(px) px.addEventListener('input',function(){ pltState.posterOffsetX=parseFloat(this.value); plt_draw(); });
+  var py=document.getElementById('plt_posterOffsetY'); if(py) py.addEventListener('input',function(){ pltState.posterOffsetY=parseFloat(this.value); plt_draw(); });
+  var pr=document.getElementById('plt_posterResetBtn'); if(pr) pr.addEventListener('click',function(){ plt_resetPosterAdjust(); plt_draw(); });
+  var li=document.getElementById('plt_logoInput');
+  if(li) li.addEventListener('change',async function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=async function(ev){
+      pltState.logoDataUrl=ev.target.result;
+      try{localStorage.setItem('m17liv3_logo_dataurl',pltState.logoDataUrl);}catch(x){}
+      pltLogoImg=await plt_loadImage(pltState.logoDataUrl,false);
+      var lp=document.getElementById('plt_logoPreviewSmall'); if(lp){lp.src=pltState.logoDataUrl;lp.style.display='inline-block';}
+      plt_draw();
+    };
+    reader.readAsDataURL(file);
+  });
+  var db=document.getElementById('plt_downloadBtn');
+  if(db) db.addEventListener('click',async function(){
+    plt_draw();
+    var blob=await plt_canvasToJpegBlob();
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    var safe=(pltState.title||'plantilla').toLowerCase().replace(/[^a-z0-9]+/gi,'_').slice(0,40);
+    a.href=url; a.download='m17liv3_'+(safe||'plantilla')+'.jpg';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  });
+  var ub=document.getElementById('plt_uploadBtn');
+  if(ub) ub.addEventListener('click',async function(){
+    plt_setStatus("Generando imagen...",""); plt_draw();
+    var blob; try{blob=await plt_canvasToJpegBlob();}catch(err){plt_setStatus("Error CORS.","err");return;}
+    plt_setStatus("Subiendo a imgBB...","");
+    try{
+      var fd=new FormData(); fd.append('image',blob);
+      var res=await fetch('https://api.imgbb.com/1/upload?key='+IMGBB_KEY,{method:'POST',body:fd});
+      var data=await res.json();
+      if(data.success){
+        var link=data.data.url;
+        var lb=document.getElementById('plt_linkBox'); if(lb){lb.textContent=link;lb.classList.add('show');}
+        var cb=document.getElementById('plt_copyBtn'); if(cb){cb.disabled=false;cb.dataset.link=link;}
+        plt_setStatus("Subido correctamente!","ok");
+      } else throw new Error((data.error&&data.error.message)||'Error imgBB');
+    }catch(err){plt_setStatus("Error: "+err.message,"err");}
+  });
+  var cpb=document.getElementById('plt_copyBtn');
+  if(cpb) cpb.addEventListener('click',async function(){
+    var link=this.dataset.link; if(!link) return;
+    try{await navigator.clipboard.writeText(link);plt_setStatus("Enlace copiado!","ok");}
+    catch(err){plt_setStatus("No se pudo copiar.","err");}
+  });
+}
+
+// === END PLANTILLAS ===
+
 </script>
 
 <!-- CARTELERA SHEET -->
@@ -1178,5 +1591,146 @@ async function cartResetVisits() {
 
 
 <div id="toastMsg" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:#1e1e2a;border:1px solid rgba(0,229,255,0.3);color:#eeeef5;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:transform 0.3s ease;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.5);">Mensaje</div>
+<!-- PLANTILLAS SHEET -->
+<div class="sheet-overlay" id="pltOverlay" onclick="closeSheet('pltSheet','pltOverlay')"></div>
+<div class="sheet" id="pltSheet" style="max-height:92vh;overflow-y:auto;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h3>&#127916; Plantillas Pel&iacute;culas</h3>
+    <button class="sheet-close" onclick="closeSheet('pltSheet','pltOverlay')">&#10005;</button>
+  </div>
+  <div class="sheet-body" style="padding-bottom:30px;">
+<style>
+:root{
+  --bg:#0d0d14;
+  --panel:#13131e;
+  --border:rgba(0,229,255,0.15);
+  --cyan:#00e5ff;
+  --green:#69ff47;
+  --white:#eeeef5;
+  --muted:#8a94a8;
+  --accent-grad:linear-gradient(90deg,#00e5ff,#69ff47);
+}
+#pltInner * {box-sizing:border-box;margin:0;padding:0;}
+}
+}
+#pltInner .header img {height:52px;margin-bottom:6px;}
+#pltInner .header h1 {font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);font-weight:600;}
+}
+#pltInner .back-btn:hover {background:rgba(0,229,255,0.15);}
+#pltInner .app {
+}
+@media(max-width:900px){
+#pltInner .app {grid-template-columns:1fr;}
+}
+#pltInner .panel {
+}
+#pltInner .panel h2 {
+}
+#pltInner label {display:block;font-size:12px;color:var(--muted);margin-bottom:6px;margin-top:12px;}
+#pltInner label:first-of-type {margin-top:0;}
+#pltInner input[type="text"], #pltInner input[type="search"], #pltInner textarea {
+}
+#pltInner textarea {resize:vertical;min-height:90px;}
+#pltInner input:focus, #pltInner textarea:focus {border-color:var(--cyan);}
+#pltInner input[type="range"] {width:100%;accent-color:var(--cyan);margin-top:2px;}
+#pltInner .row {display:flex;gap:10px;}
+#pltInner .row>div {flex:1;}
+#pltInner button {
+}
+#pltInner button:active {transform:scale(0.98);}
+#pltInner button:disabled {opacity:0.5;cursor:not-allowed;}
+#pltInner .btn-primary {background:var(--accent-grad);color:#06121a;width:100%;margin-top:14px;}
+#pltInner .btn-secondary {background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--white);width:100%;}
+#pltInner .btn-cyan {background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:var(--cyan);width:100%;margin-top:10px;}
+#pltInner .results {margin-top:10px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+#pltInner .result-item {
+}
+#pltInner .result-item:hover {border-color:var(--cyan);}
+#pltInner .result-item img {width:40px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#1c2740;}
+#pltInner .result-item .meta {font-size:12px;line-height:1.3;}
+#pltInner .result-item .meta .t {font-weight:600;}
+#pltInner .result-item .meta .y {color:var(--muted);font-size:11px;}
+#pltInner .preview-wrap {display:flex;flex-direction:column;align-items:center;gap:16px;}
+#pltInner #stage-container {
+}
+#pltInner canvas {width:100%;height:100%;display:block;}
+#pltInner .actions {display:flex;gap:10px;width:100%;flex-wrap:wrap;}
+#pltInner .actions button {flex:1;min-width:140px;margin-top:0;}
+#pltInner .poster-gallery {
+}
+#pltInner .poster-thumb {
+}
+#pltInner .poster-thumb img {width:100%;height:100%;object-fit:cover;display:block;}
+#pltInner .poster-thumb:hover {border-color:var(--cyan);transform:translateY(-2px);}
+#pltInner .poster-thumb.selected {border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
+#pltInner .file-row {display:flex;align-items:center;gap:10px;}
+#pltInner .file-row img {width:40px;height:40px;object-fit:contain;border-radius:6px;background:#0a0f1c;border:1px solid var(--border);}
+#pltInner .logo-input-label {
+}
+#pltInner .logo-input-label:hover {border-color:var(--cyan);}
+#pltInner input[type="file"] {display:none;}
+#pltInner .small-note {font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
+#pltInner .poster-adjust-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:700px){.poster-adjust-grid{grid-template-columns:1fr;}}
+#pltInner .status {font-size:12px;color:var(--muted);text-align:center;min-height:18px;}
+#pltInner .status.ok {color:var(--green);}
+#pltInner .status.err {color:#f87171;}
+#pltInner .link-box {
+}
+#pltInner .link-box.show {display:block;}</style>
+<div id="pltInner">
+<div class="app">
+<div>
+<div class="panel">
+<h2>&#128269; Buscar pel&iacute;cula (TMDB)</h2>
+<label>T&iacute;tulo</label>
+<input type="text" id="plt_searchInput" placeholder="Ej: Interstellar"/>
+<button class="btn-cyan" id="plt_searchBtn">Buscar</button>
+<div class="results" id="plt_searchResults"></div>
+</div>
+<div class="panel">
+<h2>&#127916; Datos de la plantilla</h2>
+<label>T&iacute;tulo de la pel&iacute;cula</label>
+<input type="text" id="plt_title" placeholder="TITULO DE LA PELICULA"/>
+<label>G&eacute;nero</label>
+<input type="text" id="plt_genre" placeholder="GENERO"/>
+<div class="row"><div><label>Puntuaci&oacute;n (0-10)</label><input type="text" id="plt_rating" placeholder="0.0"/></div><div><label>Duraci&oacute;n (min)</label><input type="text" id="plt_duration" placeholder="00"/></div></div>
+<label>Sinopsis</label>
+<textarea id="plt_synopsis" placeholder="Sinopsis de la pelicula..."></textarea>
+<label>URL del p&oacute;ster</label>
+<input type="text" id="plt_posterUrl" placeholder="Se rellena al buscar"/>
+<label id="plt_posterGalleryLabel" style="display:none;">Elegir otro p&oacute;ster</label>
+<div class="poster-gallery" id="plt_posterGallery"></div>
+</div>
+<div class="panel">
+<h2>&#127959; Tu logo</h2>
+<div class="file-row"><img id="plt_logoPreviewSmall" src="" alt="" style="display:none;height:40px;"/><label class="logo-input-label" for="plt_logoInput">&#128193; Subir logo .png (sin fondo)</label><input type="file" id="plt_logoInput" accept="image/png" style="display:none;"/></div>
+<p class="small-note">El logo se coloca arriba a la izquierda. Se guarda en el navegador.</p>
+</div>
+</div>
+<div class="preview-wrap">
+<div id="plt_stage-container"><canvas id="plt_canvas" width="1600" height="900" style="max-width:100%;height:auto;display:block;border-radius:8px;"></canvas></div>
+<div class="panel" style="width:100%;margin-top:16px;">
+<h2>&#127919; Ajustar encuadre del p&oacute;ster</h2>
+<div class="poster-adjust-grid">
+<div><label>Zoom (<span id="plt_posterZoomVal">100</span>%)</label><input type="range" id="plt_posterZoom" min="50" max="250" value="100" step="1"/></div>
+<div><label>Horizontal</label><input type="range" id="plt_posterOffsetX" min="-100" max="100" value="0" step="1"/></div>
+<div><label>Vertical</label><input type="range" id="plt_posterOffsetY" min="-100" max="100" value="0" step="1"/></div>
+</div>
+<button class="btn-secondary" id="plt_posterResetBtn" style="margin-top:12px;">&#8635; Restablecer encuadre</button>
+</div>
+<div class="actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+<button class="btn-secondary" id="plt_downloadBtn">&#11015; Descargar JPEG</button>
+<button class="btn-primary" id="plt_uploadBtn">&#9729; Subir a imgBB</button>
+<button class="btn-secondary" id="plt_copyBtn" disabled>&#128203; Copiar enlace</button>
+</div>
+<div class="status" id="plt_status" style="margin-top:8px;"></div>
+<div class="link-box" id="plt_linkBox" style="margin-top:8px;word-break:break-all;font-size:12px;color:#00e5ff;"></div>
+</div>
+</div>
+</div>
+  </div>
+</div>
 </body>
 </html>
