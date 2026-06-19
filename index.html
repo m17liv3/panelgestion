@@ -441,23 +441,19 @@ var filterSt = '';
 var showFilters = false;
 
 function doLogin() {
-  try {
-    var u = document.getElementById('lUser').value.trim();
-    var p = document.getElementById('lPass').value;
-    if (u === ADMIN_USER && p === ADMIN_PASS) {
-      var lp = document.getElementById('loginPage');
-      var ap = document.getElementById('appPage');
-      lp.style.display = 'none';
-      ap.style.display = 'flex';
-      ap.style.flexDirection = 'column';
-      ap.style.height = '100vh';
-      renderCards(); 
-      updateStats();
-    } else {
-      var err = document.getElementById('loginErr');
-      if(err) err.style.display = 'block';
-    }
-  } catch(ex) { alert('Error login: ' + ex.message); }
+  var u = document.getElementById('lUser').value.trim();
+  var p = document.getElementById('lPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('loginPage').style.display = 'none';
+    var ap = document.getElementById('appPage');
+    ap.style.display = 'flex';
+    ap.classList.add('active');
+    try { renderCards(); } catch(e) {}
+    try { updateStats(); } catch(e) {}
+  } else {
+    var err = document.getElementById('loginErr');
+    if(err) err.style.display = 'block';
+  }
 }
 document.addEventListener('DOMContentLoaded', function() {
   var lp = document.getElementById('lPass');
@@ -1141,10 +1137,10 @@ function openPlantillas(){
 const TMDB_KEY = "6b8e3eaa1a03ebb45642e9531d8a76d2";
 
 //canvas->pltCanvas;
-const ctx = canvas.getContext('2d');
+//const ctx = canvas.getContext('2d'); // initialized in pltInit
 //WH->pltW pltH
 
-let pltPosterImg=null,pltLogoImg=null;
+//let pltPosterImg=null,pltLogoImg=null; // declared in pltInit vars
 
 function plt_loadImage(src,crossOrigin=true){
   return new Promise((resolve,reject)=>{
@@ -1406,7 +1402,7 @@ async function plt_doSearch(){
   catch(err){plt_setStatus("Error: "+err.message,"err");}
 }
 
-let pltDebounceTimer=null;
+//let pltDebounceTimer=null; // declared in pltInit vars
 function plt_syncStateFromInputsDebounced(){clearTimeout(pltDebounceTimer);pltDebounceTimer=setTimeout(plt_syncStateFromInputs,250);}
 
 async function plt_syncStateFromInputs(){
