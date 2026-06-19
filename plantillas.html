@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M17LIV3 — Plantillas Películas</title>
+<style>
+:root{
+  --bg:#0d0d14;
+  --panel:#13131e;
+  --border:rgba(0,229,255,0.15);
+  --cyan:#00e5ff;
+  --green:#69ff47;
+  --white:#eeeef5;
+  --muted:#8a94a8;
+  --accent-grad:linear-gradient(90deg,#00e5ff,#69ff47);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(0,229,255,0.07),transparent 40%),
+    radial-gradient(circle at 85% 100%,rgba(105,255,71,0.05),transparent 40%),
+    var(--bg);
+  color:var(--white);
+  min-height:100vh;
+}
+
+/* HEADER */
+.header{
+  width:100%;
+  background:linear-gradient(180deg,#13131e 0%,rgba(13,13,20,0) 100%);
+  padding:20px 20px 16px;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.header img{height:52px;margin-bottom:6px;}
+.header h1{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);font-weight:600;}
+.back-btn{
+  position:absolute;
+  left:16px;top:50%;transform:translateY(-50%);
+  background:rgba(0,229,255,0.08);
+  border:1px solid rgba(0,229,255,0.25);
+  color:var(--cyan);
+  padding:8px 14px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  text-decoration:none;
+  display:flex;align-items:center;gap:6px;
+}
+.back-btn:hover{background:rgba(0,229,255,0.15);}
+
+/* LAYOUT */
+.app{
+  max-width:1280px;
+  margin:0 auto;
+  padding:24px 16px 48px;
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:24px;
+}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr;}
+  .back-btn{position:static;transform:none;margin-bottom:8px;}
+}
+
+/* PANELS */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.panel h2{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:var(--green);
+  margin:0 0 14px;
+  font-weight:700;
+}
+
+/* INPUTS */
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;margin-top:12px;}
+label:first-of-type{margin-top:0;}
+input[type="text"],input[type="search"],textarea{
+  width:100%;
+  background:#0a0f1c;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;
+  padding:10px 12px;
+  color:var(--white);
+  font-size:14px;
+  font-family:inherit;
+  outline:none;
+  transition:border-color .15s;
+}
+textarea{resize:vertical;min-height:90px;}
+input:focus,textarea:focus{border-color:var(--cyan);}
+input[type="range"]{width:100%;accent-color:var(--cyan);margin-top:2px;}
+.row{display:flex;gap:10px;}
+.row>div{flex:1;}
+
+/* BUTTONS */
+button{
+  cursor:pointer;border:none;border-radius:10px;
+  font-family:inherit;font-weight:600;font-size:14px;
+  padding:11px 16px;transition:transform .1s,opacity .15s;
+}
+button:active{transform:scale(0.98);}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-primary{background:var(--accent-grad);color:#06121a;width:100%;margin-top:14px;}
+.btn-secondary{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--white);width:100%;}
+.btn-cyan{background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:var(--cyan);width:100%;margin-top:10px;}
+
+/* SEARCH RESULTS */
+.results{margin-top:10px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.result-item{
+  display:flex;gap:10px;align-items:center;
+  background:#0a0f1c;border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px;padding:8px;cursor:pointer;
+  transition:border-color .15s;
+}
+.result-item:hover{border-color:var(--cyan);}
+.result-item img{width:40px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#1c2740;}
+.result-item .meta{font-size:12px;line-height:1.3;}
+.result-item .meta .t{font-weight:600;}
+.result-item .meta .y{color:var(--muted);font-size:11px;}
+
+/* CANVAS */
+.preview-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;}
+#stage-container{
+  width:100%;aspect-ratio:1600/900;
+  border-radius:14px;overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+canvas{width:100%;height:100%;display:block;}
+.actions{display:flex;gap:10px;width:100%;flex-wrap:wrap;}
+.actions button{flex:1;min-width:140px;margin-top:0;}
+
+/* POSTER GALLERY */
+.poster-gallery{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:8px;margin-top:8px;max-height:320px;overflow-y:auto;padding-right:4px;
+}
+.poster-thumb{
+  position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;
+  border:2px solid rgba(255,255,255,0.08);cursor:pointer;background:#0a0f1c;
+  transition:border-color .15s,transform .1s;
+}
+.poster-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.poster-thumb:hover{border-color:var(--cyan);transform:translateY(-2px);}
+.poster-thumb.selected{border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
+
+/* LOGO FILE INPUT */
+.file-row{display:flex;align-items:center;gap:10px;}
+.file-row img{width:40px;height:40px;object-fit:contain;border-radius:6px;background:#0a0f1c;border:1px solid var(--border);}
+.logo-input-label{
+  display:inline-block;background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;cursor:pointer;font-size:13px;text-align:center;flex:1;
+}
+.logo-input-label:hover{border-color:var(--cyan);}
+input[type="file"]{display:none;}
+.small-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
+
+/* ADJUST */
+.poster-adjust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:700px){.poster-adjust-grid{grid-template-columns:1fr;}}
+
+/* STATUS */
+.status{font-size:12px;color:var(--muted);text-align:center;min-height:18px;}
+.status.ok{color:var(--green);}
+.status.err{color:#f87171;}
+.link-box{
+  width:100%;background:#0a0f1c;
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-size:13px;word-break:break-all;display:none;
+}
+.link-box.show{display:block;}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:20px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="back-btn" href="index.html">&#8592; Panel</a>
+  <img src="logo.png" alt="M17LIV3" onerror="this.style.display='none'"/>
+  <h1>Generador de Plantillas &mdash; Pel&iacute;cula Recomendada</h1>
+</div>
+
+<div class="app">
+  <!-- LEFT -->
+  <div>
+    <div class="panel">
+      <h2>&#128269; Buscar pel&iacute;cula (TMDB)</h2>
+      <label for="searchInput">T&iacute;tulo</label>
+      <input type="text" id="searchInput" placeholder="Ej: Interstellar"/>
+      <button class="btn-cyan" id="searchBtn">Buscar</button>
+      <div class="results" id="searchResults"></div>
+    </div>
+
+    <div class="panel">
+      <h2>&#127916; Datos de la plantilla</h2>
+      <label for="title">T&iacute;tulo de la pel&iacute;cula</label>
+      <input type="text" id="title" placeholder="TÍTULO DE LA PELÍCULA"/>
+      <label for="genre">G&eacute;nero</label>
+      <input type="text" id="genre" placeholder="GÉNERO"/>
+      <div class="row">
+        <div>
+          <label for="rating">Puntuaci&oacute;n (0&ndash;10)</label>
+          <input type="text" id="rating" placeholder="0.0"/>
+        </div>
+        <div>
+          <label for="duration">Duraci&oacute;n (min)</label>
+          <input type="text" id="duration" placeholder="00"/>
+        </div>
+      </div>
+      <label for="synopsis">Sinopsis</label>
+      <textarea id="synopsis" placeholder="Sinopsis de la película..."></textarea>
+      <label for="posterUrl">URL del p&oacute;ster</label>
+      <input type="text" id="posterUrl" placeholder="Se rellena al buscar"/>
+      <label id="posterGalleryLabel" style="display:none;">Elegir otro p&oacute;ster</label>
+      <div class="poster-gallery" id="posterGallery"></div>
+    </div>
+
+    <div class="panel">
+      <h2>&#127959; Tu logo</h2>
+      <div class="file-row">
+        <img id="logoPreviewSmall" src="" alt="" style="display:none;"/>
+        <label class="logo-input-label" for="logoInput">&#128193; Subir logo .png (sin fondo)</label>
+        <input type="file" id="logoInput" accept="image/png"/>
+      </div>
+      <p class="small-note">El logo se coloca arriba a la izquierda. Se guarda en el navegador para pr&oacute;ximas plantillas.</p>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="preview-wrap">
+    <div id="stage-container">
+      <canvas id="canvas" width="1600" height="900"></canvas>
+    </div>
+
+    <div class="panel" style="width:100%;">
+      <h2>&#127919; Ajustar encuadre de la portada</h2>
+      <div class="poster-adjust-grid">
+        <div>
+          <label for="posterZoom">Zoom (<span id="posterZoomVal">100</span>%)</label>
+          <input type="range" id="posterZoom" min="50" max="250" value="100" step="1"/>
+        </div>
+        <div>
+          <label for="posterOffsetX">Horizontal</label>
+          <input type="range" id="posterOffsetX" min="-100" max="100" value="0" step="1"/>
+        </div>
+        <div>
+          <label for="posterOffsetY">Vertical</label>
+          <input type="range" id="posterOffsetY" min="-100" max="100" value="0" step="1"/>
+        </div>
+      </div>
+      <button class="btn-secondary" id="posterResetBtn" style="margin-top:12px;">&#8635; Restablecer encuadre</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-secondary" id="downloadBtn">&#11015; Descargar JPEG</button>
+      <button class="btn-primary" id="uploadBtn">&#9729; Subir a imgBB</button>
+      <button class="btn-secondary" id="copyBtn" disabled>&#128203; Copiar enlace</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="link-box" id="linkBox"></div>
+  </div>
+</div>
+
+<div class="footer">M17LIV3 &copy; 2025 &mdash; TMDB + imgBB</div>
+
+<script>
+const TMDB_KEY = "6b8e3eaa1a03ebb45642e9531d8a76d2";
+const IMGBB_KEY = "8cb8483f3601ee9ae19b976b9f63d1fa";
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let state = {
+  title:"TÍTULO DE LA PELÍCULA",genre:"GÉNERO",rating:"0.0",duration:"00",
+  synopsis:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+  posterUrl:"",logoDataUrl:null,posterZoom:100,posterOffsetX:0,posterOffsetY:0
+};
+let posterImg=null,logoImg=null;
+
+function loadImage(src,crossOrigin=true){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    if(crossOrigin)img.crossOrigin="anonymous";
+    img.onload=()=>resolve(img);
+    img.onerror=(e)=>reject(e);
+    img.src=src;
+  });
+}
+
+function wrapText(ctx,text,x,y,maxWidth,lineHeight,maxLines){
+  const words=text.split(/\s+/);let line='',lines=[];
+  for(let n=0;n<words.length;n++){
+    const testLine=line+words[n]+' ';
+    if(ctx.measureText(testLine).width>maxWidth&&n>0){lines.push(line.trim());line=words[n]+' ';}
+    else line=testLine;
+  }
+  lines.push(line.trim());
+  if(maxLines&&lines.length>maxLines){
+    lines=lines.slice(0,maxLines);
+    let last=lines[maxLines-1];
+    while(ctx.measureText(last+'...').width>maxWidth&&last.length>0)last=last.slice(0,-1);
+    lines[maxLines-1]=last.trim()+'...';
+  }
+  lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lineHeight));
+  return lines.length;
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+
+function draw(){
+  ctx.fillStyle="#070b14";ctx.fillRect(0,0,W,H);
+  let g1=ctx.createRadialGradient(150,100,50,150,100,500);
+  g1.addColorStop(0,"rgba(0,229,255,0.09)");g1.addColorStop(1,"rgba(0,229,255,0)");
+  ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
+  let g2=ctx.createRadialGradient(W-150,H-100,50,W-150,H-100,600);
+  g2.addColorStop(0,"rgba(105,255,71,0.06)");g2.addColorStop(1,"rgba(105,255,71,0)");
+  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
+  drawDots(W-340,30,280,220);drawDots(0,H-240,100,240);
+  drawLogo();drawPoster();drawTextContent();drawNeonFrame();
+}
+
+function drawNeonFrame(){
+  ctx.save();const m=6;
+  let grad=ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
+  ctx.strokeStyle=grad;ctx.lineWidth=4;
+  ctx.shadowColor="rgba(0,229,255,0.6)";ctx.shadowBlur=18;
+  roundRect(ctx,m,m,W-m*2,H-m*2,18);ctx.stroke();
+  ctx.shadowBlur=0;ctx.restore();
+}
+
+function drawDots(x0,y0,w,h){
+  ctx.save();ctx.fillStyle="rgba(0,229,255,0.22)";const gap=22;
+  for(let x=x0;x<x0+w;x+=gap)for(let y=y0;y<y0+h;y+=gap){
+    ctx.beginPath();ctx.arc(x,y,1.6,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLogo(){
+  const posterX=45,posterW=580*(2/3);
+  const areaW=320,areaH=230,areaX=posterX+(posterW-areaW)/2,areaY=25;
+  if(logoImg){
+    const iw=logoImg.width,ih=logoImg.height,scale=Math.min(areaW/iw,areaH/ih);
+    const dw=iw*scale,dh=ih*scale,dx=areaX+(areaW-dw)/2,dy=areaY+(areaH-dh)/2;
+    ctx.drawImage(logoImg,dx,dy,dw,dh);
+  } else {
+    ctx.save();ctx.strokeStyle="rgba(255,255,255,0.12)";ctx.lineWidth=2;ctx.setLineDash([8,8]);
+    roundRect(ctx,areaX,areaY,areaW,areaH,14);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="600 22px Arial,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("TU LOGO",areaX+areaW/2,areaY+areaH/2);
+    ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.restore();
+  }
+}
+
+function drawPoster(){
+  const h=580,w=h*(2/3),x=45,y=280,r=22;
+  ctx.save();roundRect(ctx,x,y,w,h,r);
+  let grad=ctx.createLinearGradient(x,y,x+w,y+h);
+  grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
+  ctx.strokeStyle=grad;ctx.lineWidth=4;ctx.shadowColor="rgba(0,229,255,0.5)";ctx.shadowBlur=20;
+  ctx.stroke();ctx.shadowBlur=0;ctx.restore();
+  ctx.save();roundRect(ctx,x+2,y+2,w-4,h-4,r-2);ctx.clip();
+  if(posterImg){
+    ctx.fillStyle="#0d1422";ctx.fillRect(x+2,y+2,w-4,h-4);
+    const ir=posterImg.width/posterImg.height,tr=(w-4)/(h-4);
+    let sw,sh;
+    if(ir>tr){sh=posterImg.height;sw=sh*tr;}else{sw=posterImg.width;sh=sw/tr;}
+    const zoom=(state.posterZoom||100)/100;sw=sw/zoom;sh=sh/zoom;
+    let dw=w-4,dh=h-4;
+    if(sw>posterImg.width){const ratio=posterImg.width/sw;sw=posterImg.width;dw=(w-4)*ratio;}
+    if(sh>posterImg.height){const ratio=posterImg.height/sh;sh=posterImg.height;dh=(h-4)*ratio;}
+    const maxOffX=posterImg.width-sw,maxOffY=posterImg.height-sh;
+    let sx=(posterImg.width-sw)/2,sy=(posterImg.height-sh)/2;
+    sx+=(state.posterOffsetX||0)/100*(maxOffX/2);sy+=(state.posterOffsetY||0)/100*(maxOffY/2);
+    sx=Math.max(0,Math.min(maxOffX,sx));sy=Math.max(0,Math.min(maxOffY,sy));
+    const dx=x+2+((w-4)-dw)/2,dy=y+2+((h-4)-dh)/2;
+    ctx.drawImage(posterImg,sx,sy,sw,sh,dx,dy,dw,dh);
+  } else {
+    ctx.fillStyle="#0d1422";ctx.fillRect(x+2,y+2,w-4,h-4);
+    ctx.strokeStyle="#3a4a66";ctx.lineWidth=4;
+    const ix=x+w/2-65,iy=y+h/2-130,isz=130;
+    roundRect(ctx,ix,iy,isz,isz,14);ctx.stroke();
+    ctx.fillStyle="#5a6a85";ctx.font="700 36px Arial,sans-serif";
+    ctx.textAlign="center";ctx.fillText("PORTADA",x+w/2,y+h/2+90);ctx.textAlign="left";
+  }
+  ctx.restore();
+}
+
+function drawTextContent(){
+  const leftX=590;
+  ctx.fillStyle="#f5f7fa";ctx.font="900 62px Arial,sans-serif";ctx.textBaseline="alphabetic";
+  ctx.fillText("PELÍCULA",leftX,95);
+  let grad=ctx.createLinearGradient(leftX,0,leftX+800,0);
+  grad.addColorStop(0,"#00e5ff");grad.addColorStop(1,"#69ff47");
+  ctx.fillStyle=grad;ctx.font="900 62px Arial,sans-serif";ctx.fillText("RECOMENDADA",leftX,170);
+  ctx.fillStyle="#69ff47";ctx.font="700 34px Arial,sans-serif";ctx.fillText("de la semana",leftX,225);
+  const lineY=213,lineStartX=leftX+380;
+  ctx.strokeStyle="#69ff47";ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(lineStartX,lineY);ctx.lineTo(W-90,lineY);ctx.stroke();
+  ctx.beginPath();ctx.fillStyle="#69ff47";ctx.arc(W-90,lineY,7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#f5f7fa";ctx.font="900 52px Arial,sans-serif";
+  const titleText=(state.title||"TÍTULO DE LA PELÍCULA").toUpperCase();
+  let titleLines=wrapText(ctx,titleText,leftX,320,W-leftX-90,60,2);
+  let yCursor=320+(titleLines>1?60:0)+65;
+  ctx.font="700 26px Arial,sans-serif";
+  const genreText=(state.genre||"GÉNERO").toUpperCase();
+  const padX=26,pillH=50,textW=ctx.measureText(genreText).width,pillW=textW+padX*2;
+  roundRect(ctx,leftX,yCursor-pillH+10,pillW,pillH,pillH/2);
+  ctx.strokeStyle="#69ff47";ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle="#69ff47";ctx.textBaseline="middle";
+  ctx.fillText(genreText,leftX+padX,yCursor-pillH/2+10);ctx.textBaseline="alphabetic";
+  yCursor+=75;
+  drawStar(leftX+18,yCursor-10,22,"#69ff47");
+  ctx.fillStyle="#f5f7fa";ctx.font="600 30px Arial,sans-serif";
+  const ratingVal=parseFloat(state.rating);
+  const ratingStr=(isNaN(ratingVal)?"0.0":ratingVal.toFixed(1))+"/10";
+  ctx.fillText(ratingStr,leftX+50,yCursor);
+  ctx.strokeStyle="#3a4a66";ctx.lineWidth=2;
+  const sepX=leftX+50+ctx.measureText(ratingStr).width+30;
+  ctx.beginPath();ctx.moveTo(sepX,yCursor-25);ctx.lineTo(sepX,yCursor+5);ctx.stroke();
+  drawClock(sepX+35,yCursor-10,18,"#00e5ff");
+  ctx.fillStyle="#f5f7fa";ctx.font="600 30px Arial,sans-serif";
+  const durVal=parseInt(state.duration);
+  ctx.fillText((isNaN(durVal)?"00":durVal)+" min",sepX+65,yCursor);
+  yCursor+=50;
+  ctx.strokeStyle="rgba(255,255,255,0.12)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(leftX,yCursor);ctx.lineTo(W-90,yCursor);ctx.stroke();
+  yCursor+=55;
+  ctx.fillStyle="#00e5ff";ctx.font="800 32px Arial,sans-serif";ctx.fillText("SINOPSIS",leftX,yCursor);
+  yCursor+=45;
+  ctx.fillStyle="#e6e9ef";ctx.font="400 27px Arial,sans-serif";
+  wrapText(ctx,state.synopsis||"",leftX,yCursor,W-leftX-90,40,7);
+}
+
+function drawStar(cx,cy,r,color){
+  ctx.save();ctx.fillStyle=color;ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const oa=-Math.PI/2+i*(2*Math.PI/5),ia=oa+Math.PI/5;
+    if(i===0)ctx.moveTo(cx+r*Math.cos(oa),cy+r*Math.sin(oa));
+    else ctx.lineTo(cx+r*Math.cos(oa),cy+r*Math.sin(oa));
+    ctx.lineTo(cx+r*0.45*Math.cos(ia),cy+r*0.45*Math.sin(ia));
+  }
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+
+function drawClock(cx,cy,r,color){
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx,cy-r*0.55);
+  ctx.moveTo(cx,cy);ctx.lineTo(cx+r*0.4,cy+r*0.2);ctx.stroke();ctx.restore();
+}
+
+/* TMDB */
+async function searchMovies(q){
+  const res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&language=es-ES&query=${encodeURIComponent(q)}`);
+  if(!res.ok)throw new Error("Error TMDB "+res.status);
+  return (await res.json()).results||[];
+}
+async function getMovieDetails(id){
+  const res=await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-ES`);
+  if(!res.ok)throw new Error("Error TMDB "+res.status);
+  return res.json();
+}
+async function getMovieImages(id){
+  const res=await fetch(`https://api.themoviedb.org/3/movie/${id}/images?api_key=${TMDB_KEY}&include_image_language=es,en,null`);
+  if(!res.ok)throw new Error("Error TMDB "+res.status);
+  return (await res.json()).posters||[];
+}
+
+function renderResults(results){
+  const box=document.getElementById('searchResults');
+  box.innerHTML='';
+  if(!results.length){box.innerHTML='<p style="color:var(--muted);font-size:12px;">Sin resultados.</p>';return;}
+  results.slice(0,8).forEach(movie=>{
+    const item=document.createElement('div');item.className='result-item';
+    const src=movie.poster_path?`https://image.tmdb.org/t/p/w92${movie.poster_path}`:'';
+    const year=movie.release_date?movie.release_date.slice(0,4):'—';
+    item.innerHTML=`<img src="${src}" alt=""/><div class="meta"><div class="t">${movie.title}</div><div class="y">${year}</div></div>`;
+    item.addEventListener('click',()=>selectMovie(movie.id));
+    box.appendChild(item);
+  });
+}
+
+async function selectMovie(id){
+  setStatus("Cargando datos...","");
+  try{
+    const d=await getMovieDetails(id);
+    const year=d.release_date?d.release_date.slice(0,4):'';
+    document.getElementById('title').value=d.title?(d.title+(year?' ('+year+')':'')):'';
+    document.getElementById('genre').value=(d.genres||[]).map(g=>g.name).join(', ');
+    document.getElementById('rating').value=d.vote_average?d.vote_average.toFixed(1):'0.0';
+    document.getElementById('duration').value=d.runtime||0;
+    document.getElementById('synopsis').value=d.overview||'';
+    const posterUrl=d.poster_path?`https://image.tmdb.org/t/p/w780${d.poster_path}`:'';
+    document.getElementById('posterUrl').value=posterUrl;
+    await syncStateFromInputs();
+    setStatus("Datos cargados ✔","ok");
+    try{const posters=await getMovieImages(id);renderPosterGallery(posters,posterUrl);}catch(e){}
+  }catch(err){setStatus("Error: "+err.message,"err");}
+}
+
+function renderPosterGallery(posters,currentUrl){
+  const gallery=document.getElementById('posterGallery');
+  const label=document.getElementById('posterGalleryLabel');
+  gallery.innerHTML='';
+  if(!posters||!posters.length){label.style.display='none';return;}
+  label.style.display='block';
+  label.textContent=`Elegir otro póster (${posters.length} disponibles)`;
+  posters.forEach(poster=>{
+    const fullUrl=`https://image.tmdb.org/t/p/w780${poster.file_path}`;
+    const thumbUrl=`https://image.tmdb.org/t/p/w154${poster.file_path}`;
+    const thumb=document.createElement('div');thumb.className='poster-thumb';
+    if(fullUrl===currentUrl)thumb.classList.add('selected');
+    const img=document.createElement('img');img.src=thumbUrl;img.alt='';
+    thumb.appendChild(img);
+    thumb.addEventListener('click',async()=>{
+      document.querySelectorAll('.poster-thumb').forEach(el=>el.classList.remove('selected'));
+      thumb.classList.add('selected');
+      document.getElementById('posterUrl').value=fullUrl;
+      await syncStateFromInputs();
+    });
+    gallery.appendChild(thumb);
+  });
+}
+
+document.getElementById('searchBtn').addEventListener('click',doSearch);
+document.getElementById('searchInput').addEventListener('keydown',(e)=>{if(e.key==='Enter')doSearch();});
+
+async function doSearch(){
+  const q=document.getElementById('searchInput').value.trim();if(!q)return;
+  setStatus("Buscando...","");
+  try{renderResults(await searchMovies(q));setStatus("");}
+  catch(err){setStatus("Error: "+err.message,"err");}
+}
+
+const fieldIds=['title','genre','rating','duration','synopsis','posterUrl'];
+fieldIds.forEach(id=>document.getElementById(id).addEventListener('input',syncStateFromInputsDebounced));
+let debounceTimer=null;
+function syncStateFromInputsDebounced(){clearTimeout(debounceTimer);debounceTimer=setTimeout(syncStateFromInputs,250);}
+
+async function syncStateFromInputs(){
+  state.title=document.getElementById('title').value;
+  state.genre=document.getElementById('genre').value;
+  state.rating=document.getElementById('rating').value;
+  state.duration=document.getElementById('duration').value;
+  state.synopsis=document.getElementById('synopsis').value;
+  const newUrl=document.getElementById('posterUrl').value.trim();
+  if(newUrl!==state.posterUrl){
+    state.posterUrl=newUrl;
+    if(newUrl){
+      try{posterImg=await loadImage(newUrl,true);}
+      catch(e){try{posterImg=await loadImage(newUrl,false);}catch(e2){posterImg=null;}}
+    }else posterImg=null;
+    resetPosterAdjust();
+  }
+  draw();
+}
+
+document.getElementById('posterZoom').addEventListener('input',()=>{
+  state.posterZoom=parseFloat(document.getElementById('posterZoom').value);
+  document.getElementById('posterZoomVal').textContent=document.getElementById('posterZoom').value;draw();
+});
+document.getElementById('posterOffsetX').addEventListener('input',()=>{state.posterOffsetX=parseFloat(document.getElementById('posterOffsetX').value);draw();});
+document.getElementById('posterOffsetY').addEventListener('input',()=>{state.posterOffsetY=parseFloat(document.getElementById('posterOffsetY').value);draw();});
+document.getElementById('posterResetBtn').addEventListener('click',()=>{resetPosterAdjust();draw();});
+function resetPosterAdjust(){
+  state.posterZoom=100;state.posterOffsetX=0;state.posterOffsetY=0;
+  document.getElementById('posterZoom').value=100;
+  document.getElementById('posterOffsetX').value=0;
+  document.getElementById('posterOffsetY').value=0;
+  document.getElementById('posterZoomVal').textContent='100';
+}
+
+const LOGO_KEY='m17liv3_logo_dataurl';
+document.getElementById('logoInput').addEventListener('change',(e)=>{
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(ev)=>{
+    state.logoDataUrl=ev.target.result;
+    try{localStorage.setItem(LOGO_KEY,state.logoDataUrl);}catch(err){}
+    logoImg=await loadImage(state.logoDataUrl,false);
+    document.getElementById('logoPreviewSmall').src=state.logoDataUrl;
+    document.getElementById('logoPreviewSmall').style.display='inline-block';
+    draw();
+  };
+  reader.readAsDataURL(file);
+});
+
+async function restoreLogo(){
+  try{
+    const saved=localStorage.getItem(LOGO_KEY);
+    if(saved){
+      state.logoDataUrl=saved;logoImg=await loadImage(saved,false);
+      document.getElementById('logoPreviewSmall').src=saved;
+      document.getElementById('logoPreviewSmall').style.display='inline-block';
+      draw();
+    }
+  }catch(err){}
+}
+
+function setStatus(msg,cls){
+  const el=document.getElementById('status');el.textContent=msg;
+  el.className='status'+(cls?' '+cls:'');
+}
+
+function canvasToJpegBlob(){
+  return new Promise(resolve=>canvas.toBlob(blob=>resolve(blob),'image/jpeg',0.92));
+}
+
+document.getElementById('downloadBtn').addEventListener('click',async()=>{
+  draw();const blob=await canvasToJpegBlob();
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  const safe=(state.title||'plantilla').toLowerCase().replace(/[^a-z0-9]+/gi,'_').slice(0,40);
+  a.href=url;a.download=`m17liv3_${safe||'plantilla'}.jpg`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+
+document.getElementById('uploadBtn').addEventListener('click',async()=>{
+  setStatus("Generando imagen...","");draw();let blob;
+  try{blob=await canvasToJpegBlob();}
+  catch(err){setStatus("Error CORS con el póster.","err");return;}
+  setStatus("Subiendo a imgBB...","");
+  try{
+    const formData=new FormData();formData.append('image',blob);
+    const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:formData});
+    const data=await res.json();
+    if(data.success){
+      const link=data.data.url;
+      const linkBox=document.getElementById('linkBox');
+      linkBox.textContent=link;linkBox.classList.add('show');
+      document.getElementById('copyBtn').disabled=false;
+      document.getElementById('copyBtn').dataset.link=link;
+      setStatus("¡Subido correctamente! ✔","ok");
+    }else throw new Error(data.error?.message||'Error imgBB');
+  }catch(err){setStatus("Error imgBB: "+err.message,"err");}
+});
+
+document.getElementById('copyBtn').addEventListener('click',async()=>{
+  const link=document.getElementById('copyBtn').dataset.link;if(!link)return;
+  try{await navigator.clipboard.writeText(link);setStatus("Enlace copiado ✔","ok");}
+  catch(err){setStatus("No se pudo copiar automáticamente.","err");}
+});
+
+restoreLogo();draw();
+</script>
+</body>
+</html>
